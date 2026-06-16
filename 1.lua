@@ -1,8 +1,4 @@
--- ====================================================================
---                    MERGED MOD – FULL FEATURE SET
--- ====================================================================
-
--- ==================== PER-MATCH GUARD ====================
+-- ===================================================
 do
     local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
     if _G._BR_MOD_LOADED and _G._BR_MOD_PC == pc then return end
@@ -10,7 +6,6 @@ do
     _G._BR_MOD_PC = pc
 end
 
--- ==================== GLOBAL HELPERS ====================
 local nop = function() end
 local retTrue = function() return true end
 local retFalse = function() return false end
@@ -23,77 +18,39 @@ local function safe_require(path)
     return ok and mod or nil
 end
 
--- ==================== CONFIGURATION TABLE ====================
 _G.ModCfg = _G.ModCfg or {
-    -- Aimbot
     AimbotEnabled = false, AimbotStrength = 50, AimbotTarget = "Head",
     AimAssistEnabled = false, AimAssistStrength = 50, AimAssistTarget = "Head",
     AimConfigEnabled = false, AimConfigLevel = "MEDIUM",
-    -- Weapons
     WeaponModEnabled = false,
-    WeaponMod = {
-        [101001]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101002]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101003]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101004]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101005]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101006]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101007]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101008]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101009]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-        [101010]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-    },
+    WeaponMod = { [101001]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101002]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101003]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101004]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101005]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101006]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101007]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101008]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101009]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+                  [101010]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false} },
     NoRecoilEnabled = false, RecoilLevel = "LESS", NoShakeEnabled = false,
     MagicBulletEnabled = false, MagicBulletLevel = "MEDIUM",
-    -- ESP / Wallhack
     ESPEnabled = false, WallhackEnabled = false,
     ESP_HP_Bar = true, ESP_Box = true, ESP_MiniMap = true,
     ESP_ShowDistance = true, ESP_ShowName = true, ESP_ShowCount = true,
-    WH_CoveredColor = {R=255,G=0,B=0,A=255},
-    WH_VisibleColor = {R=0,G=255,B=0,A=255},
-    WH_CoveredGlow = {R=255,G=0,B=128,A=255},
-    WH_VisibleGlow = {R=0,G=255,B=255,A=255},
+    WH_CoveredColor = {R=255,G=0,B=0,A=255}, WH_VisibleColor = {R=0,G=255,B=0,A=255},
+    WH_CoveredGlow = {R=255,G=0,B=128,A=255}, WH_VisibleGlow = {R=0,G=255,B=255,A=255},
     ChamsGreenEnabled = false, ChamsYellowEnabled = false,
-    ChamsGreenRGB = {R=0,G=255,B=0,A=255},
-    ChamsYellowRGB = {R=255,G=255,B=0,A=255},
-    -- Misc
+    ChamsGreenRGB = {R=0,G=255,B=0,A=255}, ChamsYellowRGB = {R=255,G=255,B=0,A=255},
     FPS165Enabled = true, NoGrassEnabled = true, BlackSkyEnabled = false,
     iPadViewEnabled = true, iPadViewDistance = 6.0,
     SkinEnabled = false,
 }
 
--- Compatibility with second file's globals
-_G.Mod_Aimbot_Enabled = _G.ModCfg.AimbotEnabled
-_G.Mod_AimbotStrength = _G.ModCfg.AimbotStrength
-_G.Mod_ESP_Enabled = _G.ModCfg.ESPEnabled
-_G.Mod_Wallhack_Enabled = _G.ModCfg.WallhackEnabled
-_G.Mod_Skin_Enabled = _G.ModCfg.SkinEnabled
-_G.Mod_FPS165_Enabled = _G.ModCfg.FPS165Enabled
-_G.Mod_NoGrass_Enabled = _G.ModCfg.NoGrassEnabled
-_G.Mod_iPadView_Enabled = _G.ModCfg.iPadViewEnabled
-_G.Mod_iPadViewDistance = 80 + (_G.ModCfg.iPadViewDistance - 2) * 7   -- map to 80-135
-_G.Mod_Chams_GreenEnabled = _G.ModCfg.ChamsGreenEnabled
-_G.Mod_Chams_YellowEnabled = _G.ModCfg.ChamsYellowEnabled
-_G.Mod_Chams_GreenRGB = _G.ModCfg.ChamsGreenRGB
-_G.Mod_Chams_YellowRGB = _G.ModCfg.ChamsYellowRGB
+_G._FOV_CachedSub = nil
+_G._FOV_LastTarget = 80
+_G._FOV_SmoothCurrent = 80
 
-local function syncModCfgFromGlobals()
-    _G.ModCfg.AimbotEnabled = _G.Mod_Aimbot_Enabled or false
-    _G.ModCfg.AimbotStrength = _G.Mod_AimbotStrength or 50
-    _G.ModCfg.ESPEnabled = _G.Mod_ESP_Enabled or false
-    _G.ModCfg.WallhackEnabled = _G.Mod_Wallhack_Enabled or false
-    _G.ModCfg.SkinEnabled = _G.Mod_Skin_Enabled or false
-    _G.ModCfg.FPS165Enabled = (_G.Mod_FPS165_Enabled ~= false)
-    _G.ModCfg.NoGrassEnabled = (_G.Mod_NoGrass_Enabled ~= false)
-    _G.ModCfg.iPadViewEnabled = (_G.Mod_iPadView_Enabled ~= false)
-    _G.ModCfg.iPadViewDistance = 2 + ((_G.Mod_iPadViewDistance or 90) - 80) / 7
-    _G.ModCfg.ChamsGreenEnabled = _G.Mod_Chams_GreenEnabled or false
-    _G.ModCfg.ChamsYellowEnabled = _G.Mod_Chams_YellowEnabled or false
-    _G.ModCfg.ChamsGreenRGB = _G.Mod_Chams_GreenRGB or {R=0,G=255,B=0,A=255}
-    _G.ModCfg.ChamsYellowRGB = _G.Mod_Chams_YellowRGB or {R=255,G=255,B=0,A=255}
-end
-
--- ==================== BLACKLISTS ====================
 local BLACKLIST_HOSTS = {
     "tss.tencent","syzsdk","gcloud.qq","reportlog","tdos","logupload","feedback.wh","crash2",
     "privacy.qq","privacy.tencent","oth.eve","mdt.qq","act.tencentyun","analytics","report.qq",
@@ -127,43 +84,19 @@ local function isBlacklisted(str)
 end
 
 -- ==================== BYPASS SYSTEMS ====================
-_G.BYPASS_STATE = _G.BYPASS_STATE or {
-    DEADEYE_DISABLED = false,
-    HAWKEYE_DISABLED = false,
-    VOKLAI_DISABLED = false,
-    HIGGSBOSON_DISABLED = false,
-    HASH_VERIFY_DISABLED = false,
-    IP_MAPPING_DISABLED = false,
-    MEMORY_PATCH_DISABLED = false,
-    EDU_EYE_DISABLED = false,
-    FULL_BYPASS_ACTIVE = false
-}
 
-local function KillTable(tbl, keys)
-    if not tbl then return end
-    for _, key in ipairs(keys) do
-        pcall(function()
-            if type(tbl[key]) == "function" then tbl[key] = function() return true, {} end
-            else tbl[key] = nil end
-        end)
-    end
-end
-
--- ---- Base Bypass ----
 local function InitBypassBase()
     pcall(function()
         local stExtra = import("STExtraBlueprintFunctionLibrary")
         if stExtra and stExtra.IsDevelopment then stExtra.IsDevelopment = nop end
         if Client then Client.IsDevelopment = nop; Client.IsShipping = retFalse end
         if Server then Server.IsShipping = retFalse end
-
         local ToolReport = safe_require("client.slua.logic.report.ToolReportUtil")
         if ToolReport then
             ToolReport.IsReleaseVersion = retFalse
             ToolReport.IsWhite = retFalse
             ToolReport.GetReportSwitch = retFalse
         end
-
         local callbacks = _G.GameplayCallbacks or _G.GC
         if callbacks then
             local kills = {
@@ -181,14 +114,16 @@ local function InitBypassBase()
                 end
             end
         end
-
         if _G.TApmHelper then _G.TApmHelper.postEvent = nop end
         local PC = _G.PacketCallbacks
         if PC then
-            PC.player_report_cheat = nop; PC.upload_loots_rsp = nop; PC.watch_player_exit = nop
-            PC.player_login_report = nop; PC.player_logout_report = nop; PC.server_time_report = nop
+            PC.player_report_cheat = nop
+            PC.upload_loots_rsp = nop
+            PC.watch_player_exit = nop
+            PC.player_login_report = nop
+            PC.player_logout_report = nop
+            PC.server_time_report = nop
         end
-
         local sdm = _G.ServerDataMgr
         if sdm and sdm.DeletablePlayerResultKey then
             sdm.DeletablePlayerResultKey["SuspiciousHitCount"] = true
@@ -196,15 +131,16 @@ local function InitBypassBase()
             sdm.DeletablePlayerResultKey["EspTotalImeFocusCnt"] = true
             sdm.DeletablePlayerResultKey["ClientGravityAnomalyCount"] = true
         end
-
         local pcNotify = safe_require("GameLua.Mod.BaseMod.Common.Security.SecurityNotifyPCFeature")
         if pcNotify then
-            pcNotify.ClientRPC_SyncBanID = nop; pcNotify.ClientRPC_StrongTips = nop
-            pcNotify.ClientRPC_NormalTips = nop; pcNotify.Notify = nop
-            pcNotify.ClientRPC_NotifyBan = nop; pcNotify.ClientRPC_NotifyPunish = nop
+            pcNotify.ClientRPC_SyncBanID = nop
+            pcNotify.ClientRPC_StrongTips = nop
+            pcNotify.ClientRPC_NormalTips = nop
+            pcNotify.Notify = nop
+            pcNotify.ClientRPC_NotifyBan = nop
+            pcNotify.ClientRPC_NotifyPunish = nop
             pcNotify.ClientRPC_NotifyIllegalProgram = nop
         end
-
         local secUtils = safe_require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils")
         if secUtils and secUtils.EStrategyTypeInReplay then
             secUtils.EStrategyTypeInReplay.EspTotalSimTraceCnt = 0
@@ -215,7 +151,6 @@ local function InitBypassBase()
     end)
 end
 
--- ---- Higgs Bypass ----
 local function BypassHiggs()
     pcall(function()
         local Higgs = safe_require("GameLua.Mod.BaseMod.Common.Security.HiggsBosonComponent")
@@ -231,16 +166,21 @@ local function BypassHiggs()
         end
         if _G.DisableHiggsBoson then _G.DisableHiggsBoson = nop end
         local hia = safe_require("GameLua.Mod.BaseMod.Client.Security.ClientGlueHiaSystem")
-        if hia then hia.CheckHitIntegrity = nop; hia.InitSession = nop; hia.OnBattleEnd = nop end
+        if hia then
+            hia.CheckHitIntegrity = nop
+            hia.InitSession = nop
+            hia.OnBattleEnd = nop
+        end
         local Behavior = safe_require("GameLua.Mod.Escape.Gameplay.Subsystem.BehaviorScoreSubsystem")
         if Behavior then
-            Behavior.OnHandleBehaviorScore = nop; Behavior.AIPerceptionScore = nop
-            Behavior.ReportBehavior = nop; Behavior.CalcFinalScore = retZero
+            Behavior.OnHandleBehaviorScore = nop
+            Behavior.AIPerceptionScore = nop
+            Behavior.ReportBehavior = nop
+            Behavior.CalcFinalScore = retZero
         end
     end)
 end
 
--- ---- Ban System ----
 local function BypassBanSystem()
     pcall(function()
         local BanLogic = safe_require("client.slua.logic.ban.ClientBanLogic")
@@ -271,7 +211,6 @@ local function BypassBanSystem()
     end)
 end
 
--- ---- Report Systems ----
 local function BypassReportSystems()
     pcall(function()
         local clientReport = safe_require("GameLua.Mod.BaseMod.Client.Security.ClientReportPlayerSubsystem")
@@ -299,8 +238,7 @@ local function BypassReportSystems()
             if hawk then hawk.MarkSuspiciousPlayer = nop end
         end
         if _G.DSHawkEyePatrolSubsystem then
-            _G.DSHawkEyePatrolSubsystem._OnHawkReport = nop
-            _G.DSHawkEyePatrolSubsystem._OnHawkImprison = nop
+            _G.DSHawkEyePatrolSubsystem._OnHawkReport = nop; _G.DSHawkEyePatrolSubsystem._OnHawkImprison = nop
             _G.DSHawkEyePatrolSubsystem.CheckPunishPlayer = nop
         end
         local ClientHawk = safe_require("GameLua.Mod.BaseMod.Client.Security.ClientHawkEyePatrolSubsystem")
@@ -322,7 +260,6 @@ local function BypassReportSystems()
     end)
 end
 
--- ---- TLog Modules ----
 local function BypassTLogModules()
     pcall(function()
         local tlogMods = {
@@ -358,7 +295,6 @@ local function BypassTLogModules()
     end)
 end
 
--- ---- Network Handlers ----
 local function BypassNetworkHandlers()
     pcall(function()
         local ClientError = safe_require("client.network.Protocol.ClientErrorReportHandler")
@@ -390,7 +326,6 @@ local function BypassNetworkHandlers()
     end)
 end
 
--- ---- Misc Systems ----
 local function BypassMiscSystems()
     pcall(function()
         local EmuHandler = safe_require("client.network.Protocol.EmulatorHandler")
@@ -402,7 +337,10 @@ local function BypassMiscSystems()
         local DSMonitor = safe_require("client.logic.data.logic_ds_monitor")
         if DSMonitor then DSMonitor.OnRecordMsg = nop; DSMonitor.OnReportMsg = nop end
         local ClientDataStat = safe_require("GameLua.Mod.BaseMod.Client.Security.ClientDataStatistcsSubsystem")
-        if ClientDataStat then ClientDataStat.StartToCheck = nop; ClientDataStat.OnReceiveRTT = nop; ClientDataStat.OnReceiveJitter = nop; ClientDataStat.ReportAbnormal = nop; ClientDataStat.ResetData = nop end
+        if ClientDataStat then
+            ClientDataStat.StartToCheck = nop; ClientDataStat.OnReceiveRTT = nop; ClientDataStat.OnReceiveJitter = nop
+            ClientDataStat.ReportAbnormal = nop; ClientDataStat.ResetData = nop
+        end
         local shootVerify = safe_require("GameLua.Dev.Subsystem.ShootVerifySubSystemClient")
         if shootVerify then shootVerify.OnShootVerifyFailed = nop; shootVerify.SendVerifyData = nop end
         local HighlightDS = safe_require("GameLua.Mod.BaseMod.DS.Security.HighlightMomentSubsystem_DSChecker")
@@ -426,7 +364,6 @@ local function BypassMiscSystems()
     end)
 end
 
--- ---- Extra Subsystems ----
 local function BypassExtraSubsystems()
     pcall(function()
         local znq6Revive = safe_require("GameLua.Mod.TDEvent.ZNQ6th.DS.ZNQ6thDSReviveSubsystem")
@@ -459,9 +396,8 @@ local function BypassExtraSubsystems()
         end
         local AFKReport = safe_require("GameLua.Mod.BaseMod.DS.Security.AFKReportorSubsystem")
         if AFKReport then
-            AFKReport.HandleEnterFighting = nop; AFKReport.InitializePlayerInputInfo = nop
-            AFKReport.AddOneAFKInfo = nop; AFKReport.SetPlayerAFKState = nop
-            AFKReport.ResetPlayerInputInfo = nop; AFKReport.PlayerHaveAction = nop
+            AFKReport.HandleEnterFighting = nop; AFKReport.InitializePlayerInputInfo = nop; AFKReport.AddOneAFKInfo = nop
+            AFKReport.SetPlayerAFKState = nop; AFKReport.ResetPlayerInputInfo = nop; AFKReport.PlayerHaveAction = nop
         end
         local TDMAFK = safe_require("GameLua.Mod.TDM.Gameplay.Subsystem.TDMAFKReportorSubsystem")
         if TDMAFK then TDMAFK.SendAFKTips = nop; TDMAFK.OnHandleLostConnection = nop end
@@ -478,7 +414,6 @@ local function BypassExtraSubsystems()
     end)
 end
 
--- ---- Network Blacklist ----
 local function InitNetworkBlacklist()
     pcall(function()
         if _G.HttpRequest then
@@ -513,7 +448,6 @@ local function InitNetworkBlacklist()
     end)
 end
 
--- ---- File I/O Crash Block ----
 local function InitFileIOCrashBlock()
     local orig_io_open = io.open
     io.open = function(path, mode)
@@ -536,7 +470,12 @@ local function InitFileIOCrashBlock()
     end
 end
 
--- ---- 8‑Layer Advanced Bypass ----
+_G.BypassState = _G.BypassState or {
+    DeadEyeDisabled = false, HawkEyeDisabled = false, VoklaiDisabled = false,
+    HiggsBosonDisabled = false, HashVerifyDisabled = false, IPMappingDisabled = false,
+    MemoryPatchDisabled = false, EduEyeDisabled = false, FullBypassActive = false
+}
+
 local FakeData = {
     ping = function() return math.random(20, 45) end,
     deviceID = function()
@@ -554,8 +493,17 @@ local FakeData = {
     hashValue = function() return "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6" end
 }
 
+local function KillTable(tbl, keys)
+    if not tbl then return end
+    for _, key in ipairs(keys) do
+        pcall(function()
+            if type(tbl[key]) == "function" then tbl[key] = function() return true, {} end else tbl[key] = nil end
+        end)
+    end
+end
+
 local function BypassDeadEye()
-    if _G.BYPASS_STATE.DEADEYE_DISABLED then return end
+    if _G.BypassState.DeadEyeDisabled then return end
     pcall(function()
         if _G.GameplayCallbacks then KillTable(_G.GameplayCallbacks, {"ReportAimFlow","ReportHitFlow","ReportAttackFlow","OnAimDetected","OnHeadshotDetected","OnPerfectAccuracy"}) end
         local subsystems = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
@@ -567,11 +515,11 @@ local function BypassDeadEye()
             end
         end
     end)
-    _G.BYPASS_STATE.DEADEYE_DISABLED = true
+    _G.BypassState.DeadEyeDisabled = true
 end
 
 local function BypassHawkEye()
-    if _G.BYPASS_STATE.HAWKEYE_DISABLED then return end
+    if _G.BypassState.HawkEyeDisabled then return end
     pcall(function()
         local subsystems = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
         if subsystems then
@@ -580,11 +528,11 @@ local function BypassHawkEye()
         end
         if _G.GameplayCallbacks then KillTable(_G.GameplayCallbacks, {"SendDSErrorLogToLobby","SendDSHawkEyePatrolLogToLobby","ReportMatchRoomData"}) end
     end)
-    _G.BYPASS_STATE.HAWKEYE_DISABLED = true
+    _G.BypassState.HawkEyeDisabled = true
 end
 
 local function BypassVoklai()
-    if _G.BYPASS_STATE.VOKLAI_DISABLED then return end
+    if _G.BypassState.VoklaiDisabled then return end
     pcall(function()
         local subsystems = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
         if subsystems then
@@ -596,11 +544,11 @@ local function BypassVoklai()
             if speedHack then speedHack.GetSpeed = function() return math.random(300, 600) end; speedHack.IsSpeedValid = function() return true end end
         end
     end)
-    _G.BYPASS_STATE.VOKLAI_DISABLED = true
+    _G.BypassState.VoklaiDisabled = true
 end
 
-local function BypassHiggsBoson()
-    if _G.BYPASS_STATE.HIGGSBOSON_DISABLED then return end
+local function BypassHiggsBoson8()
+    if _G.BypassState.HiggsBosonDisabled then return end
     pcall(function()
         local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
         if isValid(pc) then
@@ -620,11 +568,11 @@ local function BypassHiggsBoson()
         setmetatable(_G.GlobalPlayerCoronaData, mt)
         _G.BlackList = {}
     end)
-    _G.BYPASS_STATE.HIGGSBOSON_DISABLED = true
+    _G.BypassState.HiggsBosonDisabled = true
 end
 
 local function BypassHashVerification()
-    if _G.BYPASS_STATE.HASH_VERIFY_DISABLED then return end
+    if _G.BypassState.HashVerifyDisabled then return end
     pcall(function()
         if _G.TssSdk then
             _G.TssSdk.ScanMemory = function() return true, {code = 0, msg = "clean"} end
@@ -639,11 +587,11 @@ local function BypassHashVerification()
             if integrity then KillTable(integrity, {"CheckFileHash","VerifyMemory","ScanModules"}) end
         end
     end)
-    _G.BYPASS_STATE.HASH_VERIFY_DISABLED = true
+    _G.BypassState.HashVerifyDisabled = true
 end
 
 local function BypassIPMapping()
-    if _G.BYPASS_STATE.IP_MAPPING_DISABLED then return end
+    if _G.BypassState.IPMappingDisabled then return end
     pcall(function()
         if _G.GameplayCallbacks then KillTable(_G.GameplayCallbacks, {"SendClientDeviceInfo","ReportDeviceFingerprint","SendNetworkInfo","ReportIPAddress","SendMACAddress","ReportHardwareID"}) end
         local subsystems = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
@@ -652,11 +600,11 @@ local function BypassIPMapping()
             if deviceInfo then deviceInfo.GetDeviceID = function() return FakeData.deviceID() end; deviceInfo.GetIPAddress = function() return FakeData.ipAddress() end; deviceInfo.GetMACAddress = function() return FakeData.macAddress() end end
         end
     end)
-    _G.BYPASS_STATE.IP_MAPPING_DISABLED = true
+    _G.BypassState.IPMappingDisabled = true
 end
 
 local function BypassMemoryPatching()
-    if _G.BYPASS_STATE.MEMORY_PATCH_DISABLED then return end
+    if _G.BypassState.MemoryPatchDisabled then return end
     pcall(function()
         local subsystems = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
         if subsystems then
@@ -670,11 +618,11 @@ local function BypassMemoryPatching()
             _G.TssSdk.VerifyBoot = function() return true, {locked = true, verified = true} end
         end
     end)
-    _G.BYPASS_STATE.MEMORY_PATCH_DISABLED = true
+    _G.BypassState.MemoryPatchDisabled = true
 end
 
 local function BypassEduEye()
-    if _G.BYPASS_STATE.EDU_EYE_DISABLED then return end
+    if _G.BypassState.EduEyeDisabled then return end
     pcall(function()
         local subsystems = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
         if subsystems then
@@ -686,201 +634,104 @@ local function BypassEduEye()
             if wallhackDetect then wallhackDetect.IsVisionNormal = function() return true end; wallhackDetect.GetVisibilityRate = function() return math.random(60, 85) end end
         end
     end)
-    _G.BYPASS_STATE.EDU_EYE_DISABLED = true
+    _G.BypassState.EduEyeDisabled = true
 end
 
 local function ApplyAllBypasses()
-    if _G.BYPASS_STATE.FULL_BYPASS_ACTIVE then return end
+    if _G.BypassState.FullBypassActive then return end
     pcall(function()
         BypassDeadEye(); BypassHawkEye(); BypassVoklai()
-        BypassHiggsBoson(); BypassHashVerification(); BypassIPMapping()
+        BypassHiggsBoson8(); BypassHashVerification(); BypassIPMapping()
         BypassMemoryPatching(); BypassEduEye()
-        _G.BYPASS_STATE.FULL_BYPASS_ACTIVE = true
+        _G.BypassState.FullBypassActive = true
     end)
 end
 
--- ==================== EXTRA BYPASS FUNCTIONS (from second file) ====================
-local function InitializeLogBlocker()
+local function InitAllBypasses()
     pcall(function()
-        local s = import("ScreenshotMaker")
-        if s then s.MakePicture = nop; s.ReMakePicture = nop; s.HasCaptured = retTrue end
-        local tl = package.loaded["TLog"] or _G.TLog
-        if tl then tl.Info = nop; tl.Warning = nop; tl.Error = nop; tl.Debug = nop; tl.Report = nop end
-        local cs = package.loaded["CrashSight"] or _G.CrashSight
-        if cs then cs.ReportException = nop; cs.SetCustomData = nop; cs.Log = nop end
-        local bg = safe_require("GameLua.Mod.BaseMod.GamePlay.GameReport.GameReportUtils")
-        if bg then bg.BugglyPostExceptionFull = retFalse; bg.CheckCanBugglyPostException = retFalse; bg.ReplayReportData = nop; bg.ReportGameException = nop end
-        local ct = package.loaded["client.slua.logic.report.ClientToolsReport"]
-        if ct then ct.SendReport = nop; ct.SendException = nop end
-        local tr = safe_require("client.slua.config.tlog.tlog_report_utils")
-        if tr then tr.ReportTLogEvent = nop end
-        local ug = package.loaded["client.slua.logic.ugc.UGCNewTLogReport"] or package.loaded["client.slua.data.BasicData.BasicDataTLogReport"]
-        if ug then ug.SendExposeReq = nop; ug.SendInteractionReq = nop; ug.TLogReport = nop end
-        local ut = package.loaded["client.slua.logic.ugc.logic_ugc_tlog"]
-        if ut then ut.SendModTLog = nop; ut.ReportStay = nop end
-        local ctl = safe_require("GameLua.Mod.BaseMod.Client.ClientTLog.ClientTLogUtil")
-        if ctl then ctl.ReportGeneralCountByBRPhase = nop; ctl.ReportCommonTLogDataByBRPhase = nop end
-        local gd = safe_require("GameLua.GameCore.Data.GameplayData")
-        if gd then
-            local pc2 = gd.GetPlayerControllerSafety and gd.GetPlayerControllerSafety() or gd.GetPlayerController()
-            if slua.isValid(pc2) and pc2.ReportCrashKitFeature then
-                pc2.ReportCrashKitFeature.ReportCharacterAttachedOnVehicleException = nop
+        InitBypassBase(); BypassHiggs(); BypassBanSystem(); BypassReportSystems()
+        BypassTLogModules(); BypassNetworkHandlers(); BypassMiscSystems(); BypassExtraSubsystems()
+        InitNetworkBlacklist(); InitFileIOCrashBlock(); ApplyAllBypasses()
+        local globalFuncs = {
+            "ReportTLogEvent","SendTlog","SendClientStats","ReportHitFlow","ReportAvatarException",
+            "SendComplaintReq","SubmitReport","ReportSuspiciousPlayer","SendPacket","OnSyncBanInfo",
+            "OnVoiceBanNotify","SendSecTLog","MarkSuspiciousPlayer","ReportPlayerBehaviorData",
+            "CheckCompliance","ReportIllegalProgram","UploadVoiceLog"
+        }
+        for _, fn in ipairs(globalFuncs) do if type(_G[fn]) == "function" then _G[fn] = nop end end
+        pcall(function()
+            local s = import("ScreenshotMaker"); if s then s.MakePicture = nop; s.ReMakePicture = nop; s.HasCaptured = retTrue end
+            local tl = package.loaded["TLog"] or _G.TLog; if tl then tl.Info = nop; tl.Warning = nop; tl.Error = nop; tl.Debug = nop; tl.Report = nop end
+            local cs = package.loaded["CrashSight"] or _G.CrashSight; if cs then cs.ReportException = nop; cs.SetCustomData = nop; cs.Log = nop end
+        end)
+        pcall(function()
+            if _G.NetUtil and _G.NetUtil.SendPacket and not _G.NetUtil._IsBypassed then
+                local origSend = _G.NetUtil.SendPacket
+                local blocked = {
+                    "ReportAttackFlow","ReportSecAttackFlow","ReportHurtFlow","ReportFireArms",
+                    "ReportVerifyInfoFlow","ReportMrpcsFlow","ReportPlayerBehavior","ReportTeammatHurt",
+                    "ReportPlayerMoveRoute","ReportPlayerPosition","ReportAimFlow","ReportHitFlow",
+                    "ReportCircleFlow","ReportJumpFlow","report_players_ping","report_player_ip",
+                    "tss_sdk_report","report_client_scan_result","report_memory_exception",
+                    "report_avatar_exception","report_character_state","report_vehicle_exception",
+                    "report_camera_exception","ReportEquipmentFlow","ReportHeavyWeaponBoxSpawnFlow",
+                    "ReportHeavyWeaponBoxActivationFlow","ReportSecTLog","report_player_frame_ping_record",
+                    "ReportSecAttackFlow","ReportSecTgameMovingFlow","ReportVehicleMoveFlow",
+                    "ReportParachuteData","report_unrealnet_exception","report_ds_net_saturation",
+                    "on_tss_sdk_anti_data"
+                }
+                _G.NetUtil.SendPacket = function(packetName, ...)
+                    if blocked[packetName] then return end
+                    return origSend(packetName, ...)
+                end
+                _G.NetUtil._IsBypassed = true
             end
-        end
-    end)
-end
-
-local function InitializeScannerBlocker()
-    pcall(function()
-        local mgr = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
-        if mgr then
-            local afk = mgr:Get("AFKReportorSubsystem")
-            if afk then afk.PlayerHaveAction = nop; afk.ReportAFK = nop end
-            local cds = mgr:Get("ClientDataStatistcsSubsystem")
-            if cds then cds.StartToCheck = nop; cds.DelayCount = 0
-                if cds.ReportPingDelayTimer then cds:RemoveGameTimer(cds.ReportPingDelayTimer); cds.ReportPingDelayTimer = nil end
+        end)
+        pcall(function()
+            local hbc = safe_require("GameLua.Mod.BaseMod.Common.Security.HiggsBosonComponent")
+            if hbc and hbc.BlackList then for k in pairs(hbc.BlackList) do hbc.BlackList[k] = nil end end
+            _G.BlackList = {}
+            _G.GlobalPlayerCoronaData = _G.GlobalPlayerCoronaData or {}
+            local mt = getmetatable(_G.GlobalPlayerCoronaData) or {}
+            mt.__newindex = function(t, k, v) end
+            setmetatable(_G.GlobalPlayerCoronaData, mt)
+        end)
+        pcall(function()
+            if _G.GameSafeCallbacks then
+                _G.GameSafeCallbacks.RecordStrategyTimestampInReplay = nop
+                _G.GameSafeCallbacks.DoAttackFlowStrategy = nop
+                _G.GameSafeCallbacks.GetScriptReportContent = function() return "" end
             end
-            local aes = mgr:Get("AvatarExceptionSubsystem")
-            if aes then aes.ReportException = nop; aes.BindPlayerCharacter = nop; aes.CheckAvatarValid = retTrue end
-            local svs = mgr:Get("ShootVerifySubSystemClient")
-            if svs then svs.ReportVerifyFail = nop; svs.OnVerifyFailed = nop end
-        end
-        local cr = import("CreativeModeBlueprintLibrary")
-        if cr then cr.MD5HashByteArray = function() return "BYPASSED_MD5_HASH" end; cr.GetContentDiffData = function() return true, "BYPASSED" end end
-        local ae = package.loaded["GameLua.Mod.Library.GamePlay.Avatar.Exception.AvatarExceptionPlayerInst"]
-        if ae then ae.CheckAvatarException = nop; ae.CheckAvatarExceptionOnce = nop; ae.ReportAvatarException = nop; ae.CheckSlotMeshVisible = retFalse; ae.CheckPawnVisible = retFalse; ae.CheckCanBugglyPostException = retFalse end
-        local ac = package.loaded["blacklist.slua.logic.lobby_gm.AvatarCheckerModule"]
-        if ac then ac.CheckAvatar = retTrue; ac.ReportException = nop end
-        local mw = package.loaded["client.slua.logic.memory_warning.logic_memory_warning"]
-        if mw then mw.OnMemoryWarning = nop; mw.ReportMemoryWarning = nop end
-        local ts = package.loaded["TssSdk"] or _G.TssSdk
-        if ts then
-            local ts_recv = ts.OnRecvData
-            ts.OnRecvData = function(data)
-                if type(data) == "string" and (string.find(data, "report") or string.find(data, "exception")) then return end
-                if ts_recv then ts_recv(data) end
+            if not _G.GameplayCallbacks then return end
+            local GC = _G.GameplayCallbacks
+            local origDS = GC.OnDSPlayerStateChanged
+            GC.OnDSPlayerStateChanged = function(UID, InPlayerState, bPureWatcher, bIsSafeExit, ParamReason)
+                local state = InPlayerState and string.lower(tostring(InPlayerState)) or ""
+                local block = {["cheatdetected"]=true,["connectionlost"]=true,["connectiontimeout"]=true,["connectionexception"]=true,["netdrivererror"]=true}
+                if block[state] then return end
+                if origDS then pcall(origDS, UID, InPlayerState, bPureWatcher, bIsSafeExit, ParamReason) end
             end
-            ts.SendReportInfo = nop; ts.ScanMemory = retTrue; ts.IsEmulator = retFalse; ts.GetTssSdkReportInfo = function() return "" end
-        end
+            GC.OnPlayerNetConnectionClosed = nop; GC.OnPlayerActorChannelError = nop
+            GC.OnPlayerRPCValidateFailed = nop; GC.OnPlayerSpectateException = nop; GC.OnShutdownAfterError = nop
+        end)
+        pcall(function()
+            local mgr = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
+            local rt = mgr and mgr:Get("RescueBtnReplayTraceSubsystem")
+            if rt then rt.ReportTrace = nop; rt.StartTickMonitor = nop; rt.TickMonitorCheck = nop; rt.ReportTickMonitorHeartbeat = nop end
+            local gr = mgr and mgr:Get("GameReportSubsystem")
+            if gr then
+                gr.ReplayReportData = retFalse; gr.CheckCanBugglyPostException = retFalse; gr.BugglyPostExceptionFull = retFalse
+                gr.GetClientReplayDataReporter = function() return nil end
+                if gr.Reporter then gr.Reporter.ReportIntArrayData = nop; gr.Reporter.ReportUInt8ArrayData = nop; gr.Reporter.ReportFloatArrayData = nop end
+            end
+            local rp = safe_require("client.slua.logic.replay.logic_report_replay")
+            if rp then rp.ReportReplay = nop; rp.SendReportReq = nop end
+        end)
     end)
-end
-
-local function InitializeAntiReport()
-    pcall(function()
-        local paths = {"GameLua.Mod.BaseMod.Client.Security.ClientReportPlayerSubsystem", "Client.Security.ClientReportPlayerSubsystem"}
-        local rp = nil
-        for _, p in ipairs(paths) do
-            if package.loaded[p] then rp = package.loaded[p]; break end
-            local ok, mod = pcall(require, p)
-            if ok and mod then rp = mod; break end
-        end
-        if rp then
-            rp.OnInit = nop; rp._OnPlayerKilledOtherPlayer = nop; rp._RecordFatalDamager = nop
-            rp._OnDeathReplayDataWhenFatalDamaged = nop; rp._RecordMurdererFromDeathReplayData = nop
-            rp._RecordTeammatePlayerInfo = nop; rp._OnBattleResult = nop; rp._OnShowQuickReportMutualExclusiveUI = nop
-            rp.GetFatalDamagerMap = retEmpty; rp.GetCachedTeammateName2InfoMap = retEmpty
-            rp.GetTeammateName2InfoMapDuringBattle = retEmpty; rp.GetCurrentNotInTeamHistoricalTeammateMap = retEmpty
-            rp.GetInTeamIndexFromHistoricalTeammateInfo = function() return -1 end
-        end
-        local dspaths = {"GameLua.Mod.BaseMod.DS.Security.DSReportPlayerSubsystem", "GameLua.Mod.BaseMod.Client.Security.DSReportPlayerSubsystem"}
-        local dr = nil
-        for _, p in ipairs(dspaths) do
-            if package.loaded[p] then dr = package.loaded[p]; break end
-            local ok, mod = pcall(require, p)
-            if ok and mod then dr = mod; break end
-        end
-        if dr then
-            dr.OnInit = nop; dr._OnNearDeathOrRescued = nop; dr._OnCharacterDied = nop; dr._OnTeammateDamage = nop
-            dr._OnPlayerSettlementStart = nop; dr._AddKnockDownerToBattleResult = nop; dr._AddKillerToBattleResult = nop
-            dr._AddTeammateMurderToBattleResult = nop; dr._AddFatalDamagerMapToBattleResult = nop
-            dr._AddMLKillerUIDToBattleResult = nop; dr._SaveHistoricalTeammateInfo = nop; dr._RecordFatalDamager = nop
-            dr._RecordTeammateMurderer = nop
-        end
-        local rpu = safe_require("GameLua.Mod.BaseMod.Common.Security.ReportPlayerUtils")
-        if rpu then rpu.RecordFatalDamager = nop; rpu.IsUsingHistoricalTeammateInfo = retFalse; rpu.IsCharacterDeliverAI = retFalse end
-        local scu = safe_require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils")
-        if scu then scu.ExtractPlayerBasicInfo = retEmpty; scu.LogIf = retFalse end
-        local qr = safe_require("GameLua.Mod.BaseMod.Client.Security.ClientQuickReportMaliciousTeammate")
-        if qr then qr.OnShowMutualExclusiveUI = nop; qr.OnHideMutualExclusiveUI = nop end
-    end)
-end
-
-local function InitializeAntiCheatHooks()
-    pcall(function()
-        local hbc = safe_require("GameLua.Mod.BaseMod.Common.Security.HiggsBosonComponent")
-        if hbc and hbc.BlackList then for k in pairs(hbc.BlackList) do hbc.BlackList[k] = nil end end
-        _G.BlackList = {}
-        _G.GlobalPlayerCoronaData = _G.GlobalPlayerCoronaData or {}
-        local mt = getmetatable(_G.GlobalPlayerCoronaData) or {}
-        mt.__newindex = function(t, k, v) end
-        setmetatable(_G.GlobalPlayerCoronaData, mt)
-        if _G.GameSafeCallbacks then
-            _G.GameSafeCallbacks.RecordStrategyTimestampInReplay = nop
-            _G.GameSafeCallbacks.DoAttackFlowStrategy = nop
-            _G.GameSafeCallbacks.GetScriptReportContent = function() return "" end
-        end
-    end)
-end
-
-local function InitializeConnectionGuard()
-    pcall(function()
-        if not _G.GameplayCallbacks then return end
-        local GC = _G.GameplayCallbacks
-        local origDS = GC.OnDSPlayerStateChanged
-        GC.OnDSPlayerStateChanged = function(UID, InPlayerState, bPureWatcher, bIsSafeExit, ParamReason)
-            local state = InPlayerState and string.lower(tostring(InPlayerState)) or ""
-            local block = {["cheatdetected"]=true, ["connectionlost"]=true, ["connectiontimeout"]=true, ["connectionexception"]=true, ["netdrivererror"]=true}
-            if block[state] then return end
-            if origDS then pcall(origDS, UID, InPlayerState, bPureWatcher, bIsSafeExit, ParamReason) end
-        end
-        GC.OnPlayerNetConnectionClosed = nop
-        GC.OnPlayerActorChannelError = nop
-        GC.OnPlayerRPCValidateFailed = nop
-        GC.OnPlayerSpectateException = nop
-        GC.OnShutdownAfterError = nop
-    end)
-end
-
-local function InitializeSkinBypass()
-    pcall(function()
-        local pt = package.loaded["client.slua.logic.download.report.puffer_tlog"]
-        if pt then pt.ReportEvent = nop; pt.ReportDownloadResult = nop; pt.ReportODPAKError = nop end
-        local au = package.loaded["AvatarUtils"]
-        if au then au.CheckIsWeaponInBlackList = retFalse; au.IsValidAvatar = retTrue end
-        local fc = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr"):Get("FileCheckSubsystem")
-        if fc then fc.StartCheck = nop; fc.ReportAbnormalFile = nop end
-        local er = package.loaded["client.slua.logic.report.EquipmentExceptionReport"]
-        if er then er.Report = nop end
-    end)
-end
-
-local function InitializeReplayTelemetryBlocker()
-    pcall(function()
-        local mgr = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
-        local rt = mgr and mgr:Get("RescueBtnReplayTraceSubsystem")
-        if rt then rt.ReportTrace = nop; rt.StartTickMonitor = nop; rt.TickMonitorCheck = nop; rt.ReportTickMonitorHeartbeat = nop end
-        local gr = mgr and mgr:Get("GameReportSubsystem")
-        if gr then
-            gr.ReplayReportData = retFalse; gr.CheckCanBugglyPostException = retFalse; gr.BugglyPostExceptionFull = retFalse; gr.GetClientReplayDataReporter = function() return nil end
-            if gr.Reporter then gr.Reporter.ReportIntArrayData = nop; gr.Reporter.ReportUInt8ArrayData = nop; gr.Reporter.ReportFloatArrayData = nop end
-        end
-        local rp = package.loaded["client.slua.logic.replay.logic_report_replay"]
-        if rp then rp.ReportReplay = nop; rp.SendReportReq = nop end
-        local hr = package.loaded["client.slua.logic.home.logic_home_report"]
-        if hr then hr.ShowInGameReportUI = nop; hr.SendReport = nop end
-    end)
-end
-
-local function DisableHiggsBoson()
-    local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
-    if not slua.isValid(pc) then return end
-    if pc.HiggsBoson then pc.HiggsBoson.bMHActive = false; pc.HiggsBoson.bCallPreReplication = false end
-    if pc.HiggsBosonComponent then pc.HiggsBosonComponent.bMHActive = false; pc.HiggsBosonComponent:ControlMHActive(0) end
 end
 
 -- ==================== FEATURE IMPLEMENTATIONS ====================
 
--- ---- Aimbot ----
 local function ApplyZNAimbot()
     local cfg = _G.ModCfg
     if not cfg.AimbotEnabled then return end
@@ -935,7 +786,6 @@ local function ApplyZNAimbot()
     end)
 end
 
--- ---- Aim Assist ----
 local function ApplyAimAssist()
     local cfg = _G.ModCfg
     if not cfg.AimAssistEnabled then return end
@@ -976,7 +826,6 @@ local function ApplyAimAssist()
     end)
 end
 
--- ---- Weapon Mod ----
 local function ApplyWeaponMod()
     local cfg = _G.ModCfg
     if not cfg.WeaponModEnabled then return end
@@ -1007,7 +856,6 @@ local function ApplyWeaponMod()
     end)
 end
 
--- ---- Aim Config ----
 local function ApplyAimConfig()
     local cfg = _G.ModCfg
     if not cfg.AimConfigEnabled then return end
@@ -1058,7 +906,6 @@ local function ApplyAimConfig()
     end)
 end
 
--- ---- No Recoil / No Shake ----
 local function ApplyNoRecoil()
     local cfg = _G.ModCfg
     if not cfg.NoRecoilEnabled then return end
@@ -1108,7 +955,6 @@ local function ApplyNoRecoil()
     end)
 end
 
--- ---- Magic Bullet ----
 local function ResetHitboxes()
     pcall(function()
         local allChars = Game:GetAllPlayerPawns()
@@ -1153,7 +999,7 @@ local function ApplyMagicBullet()
                 local assetName = (physAsset.GetName and physAsset:GetName()) or tostring(physAsset)
                 if _G._MBones[assetName] then return end
                 local baseMap = {
-                    ["head"] = 0, ["neck_01"] = 150, ["pelvis"] = 150,
+                    ["head"] = 200, ["neck_01"] = 150, ["pelvis"] = 150,
                     ["spine_01"] = 150, ["spine_02"] = 150, ["spine_03"] = 150,
                     ["upperarm_l"] = 150, ["upperarm_r"] = 150,
                     ["lowerarm_l"] = 130, ["lowerarm_r"] = 130,
@@ -1220,7 +1066,9 @@ local function ApplyMagicBullet()
     end)
 end
 
--- ==================== ESP / WALLHACK ====================
+-- ==================== ESP / WALLHACK (OPTIMIZED - NO BLINK) ====================
+
+-- Cache for wallhack materials to prevent re-application
 _G._WHMaterialCache = _G._WHMaterialCache or {}
 _G._WHLastStateCache = _G._WHLastStateCache or {}
 
@@ -1228,16 +1076,20 @@ local function ApplyWallHack(enemy, pc)
     local cfg = _G.ModCfg
     if not cfg.WallhackEnabled then return end
     if not isValid(enemy) then return end
-
+    
+    -- Check if visibility state changed to avoid unnecessary reapplies
     local isVisible = false
     if isValid(pc) and isValid(enemy) and type(pc.LineOfSightTo) == "function" then
         pcall(function() isVisible = pc:LineOfSightTo(enemy) end)
     end
+    
     local enemyKey = tostring(enemy)
     local stateChanged = (_G._WHLastStateCache[enemyKey] ~= isVisible)
-    if not stateChanged and _G._WHMaterialCache[enemyKey] then return end
+    if not stateChanged and _G._WHMaterialCache[enemyKey] then
+        return -- No change, skip reapplication
+    end
     _G._WHLastStateCache[enemyKey] = isVisible
-
+    
     local meshes = {}
     pcall(function()
         if isValid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
@@ -1253,12 +1105,12 @@ local function ApplyWallHack(enemy, pc)
             end
         end
     end)
-
+    
     pcall(function()
         local finalBodyColor = isVisible and cfg.WH_VisibleColor or cfg.WH_CoveredColor
         local finalGlowColor = isVisible and cfg.WH_VisibleGlow or cfg.WH_CoveredGlow
         local scale = {R=8, G=8, B=0, A=0}
-
+        
         for _, comp in ipairs(meshes) do
             if isValid(comp) then
                 pcall(function()
@@ -1266,6 +1118,7 @@ local function ApplyWallHack(enemy, pc)
                     comp.CustomDepthStencilValue = 250
                     comp.CustomDepthStencilWriteMask = 255
                 end)
+                
                 local ok, mat = pcall(function() return comp:GetMaterial(0) end)
                 if ok and isValid(mat) then
                     local ok2, base = pcall(function() return mat:GetBaseMaterial() end)
@@ -1274,28 +1127,33 @@ local function ApplyWallHack(enemy, pc)
                         if base.BlendMode ~= 2 then base.BlendMode = 2 end
                     end
                 end
+                
                 comp.UseScopeDistanceCulling = false
                 comp.PrimitiveShadingStrategy = 1
                 comp.ShadingRate = 6
-
+                
                 local compKey = tostring(comp)
                 _G._WHMaterialCache[enemyKey] = _G._WHMaterialCache[enemyKey] or {}
-                for i = 0, 3 do
+                
+                for i = 0, 3 do -- Only first 4 materials, enough for wallhack
                     local ok3, mi = pcall(function() return comp:GetMaterial(i) end)
                     if not ok3 or not isValid(mi) then break end
+                    
                     local mid = _G._WHMaterialCache[enemyKey][compKey.."_"..i]
                     if not isValid(mid) then
                         local ok4, nm = pcall(function() return comp:CreateAndSetMaterialInstanceDynamic(i) end)
-                        if ok4 and isValid(nm) then
+                        if ok4 and isValid(nm) then 
                             _G._WHMaterialCache[enemyKey][compKey.."_"..i] = nm
                             mid = nm
                         end
                     end
+                    
                     if isValid(mid) then
                         pcall(function()
                             local bodyParams = {"颜色","Extra Light Color","Para_Color","Para_ColorTint","Tint","Color","BaseColor","BodyColor","MainColor","DiffuseColor","EmissiveColor","SubsurfaceColor","AlbedoColor","SkinColor","BaseColorTint","FillColor","MaterialColor","TintColor","ColorTint","BodyTint","MainTint"}
                             local glowParams = {"GlowColor","HighlightColor","OutlineColor","FresnelColor","RimColor","Glow","SelfIlluminateColor","EmissiveLightColor","InnerGlowColor","OuterGlowColor","EdgeGlowColor","ScanGlowColor","HologramColor","NeonColor","BloomColor","RadianceColor","FlareColor","LightColor","EmissionColor","EmissiveColor","BloomTint"}
                             local glowScalars = {"Glow","GlowAmount","GlowIntensity","GlowPower","GlowStrength","GlowBoost","HighlightPower","HighlightIntensity","EmissiveBoost","EmissiveStrength","RimPower","RimIntensity","RimStrength","FresnelPower","FresnelIntensity","OutlineStrength","OutlineThickness","SelfIlluminate","SelfIllumination","Brightness","Opacity","Intensity","GlowScale","EmissionStrength","BloomIntensity","Radiance","LightIntensity","GlowBrightness"}
+                            
                             for _, p in ipairs(bodyParams) do pcall(function() mid:SetVectorParameterValue(p, finalBodyColor) end) end
                             for _, p in ipairs(glowParams) do pcall(function() mid:SetVectorParameterValue(p, finalGlowColor) end) end
                             for _, p in ipairs(glowScalars) do pcall(function() mid:SetScalarParameterValue(p, 25.0) end) end
@@ -1308,11 +1166,13 @@ local function ApplyWallHack(enemy, pc)
     end)
 end
 
+-- ESP Cache for persistent text (prevents blinking)
 _G._ESPTextCache = _G._ESPTextCache or {}
 _G._ESPFrameCounter = 0
+
 local cachedPawns = {}
 local lastPawnRefresh = 0
-local boneList = {"head"}
+local boneList = {"head"} -- Only head bone for performance!
 
 local function IsPawnAlive(p)
     if not isValid(p) then return false end
@@ -1333,9 +1193,12 @@ local function HPBar(pct)
     return s
 end
 
+-- Dynamic ESP interval based on player count
 local function GetDynamicESPInterval()
     local totalPlayers = 0
-    for _, p in pairs(cachedPawns) do if isValid(p) then totalPlayers = totalPlayers + 1 end end
+    for _, p in pairs(cachedPawns) do
+        if isValid(p) then totalPlayers = totalPlayers + 1 end
+    end
     if totalPlayers > 40 then return 0.35
     elseif totalPlayers > 25 then return 0.25
     elseif totalPlayers > 15 then return 0.2
@@ -1345,100 +1208,120 @@ end
 local function ESPTick()
     local cfg = _G.ModCfg
     if not cfg.ESPEnabled then return end
-
+    
     _G._ESPFrameCounter = (_G._ESPFrameCounter or 0) + 1
-    local frameMod = _G._ESPFrameCounter % 2
-
+    local frameMod = _G._ESPFrameCounter % 2 -- Alternate between updates to reduce load
+    
     local ASTExtraPlayerController = import("/Script/ShadowTrackerExtra.STExtraPlayerController")
     local uCon = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
     if not (isValid(uCon) and Game:IsClassOf(uCon, ASTExtraPlayerController)) then return end
-
+    
     local currentPawn = uCon:GetCurPawn()
     if not isValid(currentPawn) then return end
-
+    
     local myTeamId = 0
     pcall(function()
         local char = uCon:GetPlayerCharacterSafety()
-        if isValid(char) and char.TeamID then myTeamId = char.TeamID
+        if isValid(char) and char.TeamID then myTeamId = char.TeamID 
         elseif currentPawn.TeamID then myTeamId = currentPawn.TeamID end
     end)
-
+    
     local myPos = nil
     pcall(function() myPos = currentPawn:K2_GetActorLocation() end)
     if not myPos then return end
-
+    
     local myEyePos = myPos
     pcall(function() if currentPawn.GetHeadLocation then myEyePos = currentPawn:GetHeadLocation(false) or myPos end end)
-
+    
     local HUD = uCon:GetHUD()
     local now = os.clock()
-
+    
+    -- Refresh cache less frequently when crowded
     local refreshTime = 2.5
-    if now - lastPawnRefresh > refreshTime then
+    if now - lastPawnRefresh > refreshTime then 
         lastPawnRefresh = now
         cachedPawns = Game:GetAllPlayerPawns() or {}
     end
-
+    
+    -- Count enemies for dynamic adjustment
     local totalAlive = 0
     local botCount = 0
     local playerCount = 0
+    
     for _, p in pairs(cachedPawns) do
-        if isValid(p) and p ~= currentPawn and p.TeamID ~= myTeamId and IsPawnAlive(p) then
+        if isValid(p) and p ~= currentPawn and p.TeamID ~= myTeamId and IsPawnAlive(p) then 
             totalAlive = totalAlive + 1
             local isBot = false
             pcall(function() isBot = Game:IsAI(p) end)
             if isBot then botCount = botCount + 1 else playerCount = playerCount + 1 end
         end
     end
-
+    
     local crowded = totalAlive > 25
     local veryCrowded = totalAlive > 40
-
+    
+    -- Update ESP timer dynamically if needed
+    if _G._ESPTimerHandle and _G._CurrentESPInterval ~= GetDynamicESPInterval() then
+        -- Interval will be adjusted on next timer creation
+    end
+    
     for _, tPawn in pairs(cachedPawns) do
         if isValid(tPawn) and tPawn ~= currentPawn and tPawn.TeamID ~= myTeamId and IsPawnAlive(tPawn) then
+            
             local enemyPos = tPawn:K2_GetActorLocation()
             local dx = enemyPos.X - myPos.X
             local dy = enemyPos.Y - myPos.Y
             local dz = enemyPos.Z - myPos.Z
             local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
             local distM = dist / 100
-
+            
+            -- Skip far enemies in very crowded situations
             if veryCrowded and distM > 150 then goto continue end
-
+            
             if dist < 600000 and HUD then
                 local name = tPawn.PlayerName or "UNKNOWN"
                 local hp = tPawn.Health
                 local maxHp = tPawn.HealthMax
                 local isKnock = false
                 local hpPercent = 0
+                
                 if not hp or not maxHp or maxHp <= 0 then isKnock = true
-                elseif hp <= 0 then isKnock = true
+                elseif hp <= 0 then isKnock = true 
                 else hpPercent = hp / maxHp end
-
+                
                 local hpColor = {R=0,G=255,B=0,A=255}
                 if isKnock then hpColor = {R=255,G=0,B=0,A=255}
                 elseif hpPercent < 0.3 then hpColor = {R=255,G=0,B=0,A=255}
                 elseif hpPercent < 0.7 then hpColor = {R=255,G=255,B=0,A=255} end
-
+                
+                -- Only get head position (optimized)
                 local headPos = nil
                 local mesh = tPawn.Mesh
-                if isValid(mesh) then headPos = mesh:GetSocketLocation("head") end
-
+                if isValid(mesh) then
+                    headPos = mesh:GetSocketLocation("head")
+                end
+                
                 local origin = enemyPos
                 local oz = origin.Z
                 local headZ = headPos and (headPos.Z - oz) or 90
                 local hpOffset = headZ + 70 + math.min(distM, 60) * 3 + math.max(0, distM - 60) * 0.5
                 local nameOffset = -80 - math.min(distM, 60) * 0.33 - math.max(0, distM - 60) * 0.1
-
-                if cfg.WallhackEnabled then pcall(ApplyWallHack, tPawn, uCon) end
-
+                
+                -- Wallhack - only apply on state change (already optimized in ApplyWallHack)
+                if cfg.WallhackEnabled then 
+                    pcall(ApplyWallHack, tPawn, uCon)
+                end
+                
+                -- ESP rendering with frame alternation to reduce load
                 if frameMod == 0 or not veryCrowded then
                     if veryCrowded then
+                        -- Very crowded: only show dot
                         local hz = headPos and (headPos.Z - oz + 15)
                         if hz and cfg.ESP_Box then
                             HUD:AddDebugText("●", tPawn, 0.2, {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true)
                         end
                     elseif crowded then
+                        -- Crowded: show dot + HP
                         local hz = headPos and (headPos.Z - oz + 15)
                         if hz and cfg.ESP_Box then
                             HUD:AddDebugText("●", tPawn, 0.25, {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true)
@@ -1448,15 +1331,18 @@ local function ESPTick()
                             HUD:AddDebugText(hpText, tPawn, TextScale(distM), {X=0,Y=0,Z=hpOffset}, {X=0,Y=0,Z=hpOffset}, hpColor, true, false, true, nil, 1.0, true)
                         end
                     else
+                        -- Normal: full ESP
                         local hz = headPos and (headPos.Z - oz + 15)
                         if hz and cfg.ESP_Box then
                             local headChar = distM <= 25 and "O" or "●"
                             HUD:AddDebugText(headChar, tPawn, TextScale(distM), {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true)
                         end
+                        
                         if cfg.ESP_HP_Bar then
                             local hpText = isKnock and "DOWN" or HPBar(hpPercent)
                             HUD:AddDebugText(hpText, tPawn, TextScale(distM), {X=0,Y=0,Z=hpOffset}, {X=0,Y=0,Z=hpOffset}, hpColor, true, false, true, nil, 1.0, true)
                         end
+                        
                         if cfg.ESP_ShowName or cfg.ESP_ShowDistance then
                             local nameColor = {R=0,G=255,B=0,A=255}
                             if cfg.ChamsGreenEnabled and cfg.ChamsYellowEnabled then
@@ -1478,34 +1364,41 @@ local function ESPTick()
         end
         ::continue::
     end
-
+    
+    -- Show count only when not crowded
     if not crowded and cfg.ESP_ShowCount and HUD and currentPawn then
         HUD:AddDebugText(string.format("BOT: %d  PLAYER: %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=170}, {X=0,Y=0,Z=170}, {R=255,G=255,B=255,A=255}, true, false, true, nil, 1.0, true)
     end
 end
 
+-- Dynamic ESP timer that adjusts based on player count
 local function StartESPWatchdog()
     pcall(function()
         if _G._ESPWatchdogHandle then pcall(function() Game:ClearTimer(_G._ESPWatchdogHandle) end); _G._ESPWatchdogHandle = nil end
-
+        
         local function StartESP(targetActor)
             if not isValid(targetActor) then return end
             cachedPawns = {}
             lastPawnRefresh = 0
             _G._ESPTimerChar = targetActor
+            
             if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
                 pcall(function() _G._ESPTimerChar:RemoveGameTimer(_G._ESPTimerHandle) end)
             end
+            
             local interval = GetDynamicESPInterval()
             _G._CurrentESPInterval = interval
             _G._ESPTimerHandle = targetActor:AddGameTimer(interval, true, function() pcall(ESPTick) end)
         end
-
+        
         local function Watchdog()
             pcall(function()
                 local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
                 local curPawn = pc and pc:GetCurPawn()
-                if isValid(curPawn) and _G._CurrentESPInterval ~= GetDynamicESPInterval() then
+                
+                -- Check if we need to adjust interval
+                local newInterval = GetDynamicESPInterval()
+                if isValid(curPawn) and _G._CurrentESPInterval ~= newInterval then
                     if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
                         pcall(function() _G._ESPTimerChar:RemoveGameTimer(_G._ESPTimerHandle) end)
                     end
@@ -1516,18 +1409,19 @@ local function StartESPWatchdog()
                     end
                     _G._ESPTimerHandle = nil
                     StartESP(curPawn)
-                elseif not _G._ESPTimerHandle then
+                elseif not _G._ESPTimerHandle then 
                     StartESP(curPawn)
                 end
             end)
         end
-
+        
         _G._ESPWatchdogHandle = Game:SetTimer(2.0, true, Watchdog)
         Watchdog()
     end)
 end
 
--- ==================== 165 FPS / IPAD VIEW ====================
+-- ==================== 165 FPS ====================
+
 local function Enable165FPS()
     pcall(function()
         local graphics = safe_require("client.slua.logic.setting.logic_setting_graphics")
@@ -1547,7 +1441,7 @@ local function Enable165FPS()
             function impl.GetMaxFPSLevel() return 8, 8 end
             function impl:InitRealSupportFPS()
                 local t = {}; for i = 1, 8 do t[i] = {true, true} end
-                local db = safe_require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
+                local db = require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
                 if db then db:UpdateUIData(db.RealSupportFPS, t, false) end
                 return t
             end
@@ -1569,7 +1463,7 @@ local function Enable165FPS()
             local MIN = 90
             function impl:ShowOrHide() self:SelfHitTestInvisible(); if self.InitFPSFTSwitch then self:InitFPSFTSwitch() end end
             function impl:InitFPSFTSwitch()
-                local db = safe_require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
+                local db = require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
                 local on = db:GetUIData(db.FPSFineTuneSwitch)
                 if self.UIRoot.Setting_Switch then self.UIRoot.Setting_Switch:SetSwitcherEnable2(on, true) end
                 if self.UIRoot.CanvasPanel_8 then self:SetWidgetVisible(self.UIRoot.CanvasPanel_8, on) end
@@ -1577,7 +1471,7 @@ local function Enable165FPS()
                 if self.InitFPSFTValue165 then self:InitFPSFTValue165() end
             end
             function impl:InitFPSFTValue165()
-                local db = safe_require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
+                local db = require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
                 local r = self.UIRoot
                 local on = db:GetUIData(db.FPSFineTuneSwitch)
                 local val = on and (db:GetUIData(db.FPSFineTuneNum) or 165) or 165
@@ -1592,7 +1486,7 @@ local function Enable165FPS()
                 r.Veihclescreen3:SetText(tostring(val)); r.Slider_screen3:SetValue(norm); r.ProgressBar_screen3:SetPercent(norm)
             end
             function impl:OnFPSFTValueChange3(val)
-                local db = safe_require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
+                local db = require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
                 db:UpdateUIData(db.FPSFineTuneNum, val)
                 if self.InitFPSFTValue165 then self:InitFPSFTValue165() end
                 if self:GetParentUI() then self:GetParentUI():SetDirty(true) end
@@ -1600,12 +1494,12 @@ local function Enable165FPS()
                 if gi then gi:ExecuteCMD("t.MaxFPS", tostring(val)); gi:ExecuteCMD("r.FrameRateLimit", tostring(val)) end
             end
             function impl:OnFPSFTAdd3()
-                local db = safe_require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
+                local db = require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
                 local cur = db:GetUIData(db.FPSFineTuneNum) or 90
                 self:OnFPSFTValueChange3(math.min(165, cur + 5))
             end
             function impl:OnFPSFTMinus3()
-                local db = safe_require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
+                local db = require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
                 local cur = db:GetUIData(db.FPSFineTuneNum) or 90
                 self:OnFPSFTValueChange3(math.max(MIN, cur - 5))
             end
@@ -1641,6 +1535,7 @@ local function EnableiPadView()
 end
 
 -- ==================== SKIN SYSTEM ====================
+
 local BASE_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/"
 local CONFIG_PATH = BASE_PATH .. "config.ini"
 local SAVE_KILL_PATH = BASE_PATH .. "kill_counts.txt"
@@ -1734,7 +1629,8 @@ local function ReadLiveConfigSkin()
     end)
 end
 
--- ---- Attachment Helpers ----
+-- ==================== SKIN ATTACHMENT SYSTEM ====================
+
 local ATTACH_NAME_MAP = {
     ["Red Dot Sight"] = "RedDot", ["Holographic Sight"] = "Holo",
     ["2x Scope"] = "Scope2x", ["3x Scope"] = "Scope3x", ["4x Scope"] = "Scope4x",
@@ -1755,8 +1651,8 @@ _G.stock = { id_microStock=205001, id_tactical=205002, id_bulletloop=204014, id_
 
 _G.ItemUpgradeSystem = nil
 pcall(function()
-    local MM = safe_require("client.module_framework.ModuleManager")
-    local IUS = MM and MM.GetModule(MM.CommonModuleConfig.ItemUpgradeManager)
+    local MM = require("client.module_framework.ModuleManager")
+    local IUS = MM.GetModule(MM.CommonModuleConfig.ItemUpgradeManager)
     if IUS then IUS:DefineAndResetData(); IUS:OnInitialize(); _G.ItemUpgradeSystem = IUS end
 end)
 
@@ -1970,8 +1866,10 @@ _G.apply_attachment = function(CurWeapon, avatarid)
     end
 end
 
--- ---- Skin Application ----
+-- ==================== SKIN APPLICATION SYSTEM ====================
+
 _G.__WeaponLogicHookInjected = false
+
 local function InjectWeaponLogicHooks(pawn)
     if not isValid(pawn) then return end
     if _G.__WeaponLogicHookInjected then return end
@@ -2093,12 +1991,13 @@ _G.ApplyLocalPlayerSkins = function(p)
             local extra_keys = {"Hat","Mask","Glasses","Pants","Shoes","Armor","Parachute"}
             for _, key in ipairs(extra_keys) do
                 local id = _G.OutfitMap[key]
-                if id and id > 0 and _G.LastEquippedOutfits[key] ~= id then
+                if id and id > 0 and _G.LastEquippedOutfits and _G.LastEquippedOutfits[key] ~= id then
                     if _G.download_item and not _G.SkinLoadedCache[id] then
                         pcall(_G.download_item, id)
                         _G.SkinLoadedCache[id] = true
                     end
                     ac:PutOnCustomEquipmentByID(id, {})
+                    _G.LastEquippedOutfits = _G.LastEquippedOutfits or {}
                     _G.LastEquippedOutfits[key] = id
                 end
             end
@@ -2153,6 +2052,7 @@ _G.ApplyLocalPlayerSkins = function(p)
 end
 
 -- ==================== MOD MENU INJECTION ====================
+
 local function InitModMenu()
     local LocUtil = _G.LocUtil
     if not LocUtil then LocUtil = safe_require("client.common.LocUtil") end
@@ -2164,30 +2064,26 @@ local function InitModMenu()
         end
         LocUtil._IsModMenuHooked = true
     end
-
     local SettingPageDefine = safe_require("client.logic.NewSetting.SettingPageDefine")
     local SettingCatalog = safe_require("client.logic.NewSetting.SettingCatalog")
     if not SettingPageDefine or not SettingCatalog then return end
     if SettingPageDefine.ModMenu then return end
-
     local AliasMap = safe_require("client.slua.umg.NewSetting.Item.AliasMap")
     if not AliasMap then return end
-
     local cfg = _G.ModCfg
     local menuStacks = {}
 
-    -- Aimbot Category
     local aimbotStack = {}
     table.insert(aimbotStack, { UI = AliasMap.Title, Text = "=== AIMBOT ===" })
     table.insert(aimbotStack, {
-        Key = "MM_Aimbot", UI = AliasMap.Switcher, Text = "ADI AIMBOT",
+        Key = "MM_Aimbot", UI = AliasMap.Switcher, Text = "ZN AIMBOT",
         GetFunc = function() return cfg.AimbotEnabled end,
-        SetFunc = function(_, v) cfg.AimbotEnabled = v; _G.Mod_Aimbot_Enabled = v; return true end
+        SetFunc = function(_, v) cfg.AimbotEnabled = v; return true end
     })
     table.insert(aimbotStack, {
         Key = "MM_AimbotStr", UI = AliasMap.Slider, Text = "Aimbot Strength (0-100)", min=0, max=100,
         GetFunc = function() return (cfg.AimbotStrength or 50) / 100 end,
-        SetFunc = function(_, v) cfg.AimbotStrength = math.floor(v * 100); _G.Mod_AimbotStrength = cfg.AimbotStrength; return true end
+        SetFunc = function(_, v) cfg.AimbotStrength = math.floor(v * 100); return true end
     })
     table.insert(aimbotStack, { UI = AliasMap.Title, Text = "Target Bone:" })
     for _, t in ipairs({"Head", "neck_01", "pelvis"}) do
@@ -2225,7 +2121,6 @@ local function InitModMenu()
     end
     menuStacks[#menuStacks+1] = { Key = "Cat_Aimbot", loc = "AIMBOT", Stack = aimbotStack }
 
-    -- Weapon Category
     local weaponStack = {}
     table.insert(weaponStack, { UI = AliasMap.Title, Text = "=== WEAPON MOD ===" })
     table.insert(weaponStack, {
@@ -2274,7 +2169,6 @@ local function InitModMenu()
     end
     menuStacks[#menuStacks+1] = { Key = "Cat_Weapon", loc = "WEAPON", Stack = weaponStack }
 
-    -- Magic Category
     local magicStack = {}
     table.insert(magicStack, { UI = AliasMap.Title, Text = "=== MAGIC BULLET ===" })
     table.insert(magicStack, {
@@ -2293,18 +2187,17 @@ local function InitModMenu()
     end
     menuStacks[#menuStacks+1] = { Key = "Cat_Magic", loc = "MAGIC", Stack = magicStack }
 
-    -- ESP Category (including wallhack, chams, colors)
     local espStack = {}
     table.insert(espStack, { UI = AliasMap.Title, Text = "=== ESP ===" })
     table.insert(espStack, {
         Key = "MM_ESP", UI = AliasMap.Switcher, Text = "ESP",
         GetFunc = function() return cfg.ESPEnabled end,
-        SetFunc = function(_, v) cfg.ESPEnabled = v; _G.Mod_ESP_Enabled = v; return true end
+        SetFunc = function(_, v) cfg.ESPEnabled = v; return true end
     })
     table.insert(espStack, {
         Key = "MM_WH", UI = AliasMap.Switcher, Text = "WALLHACK",
         GetFunc = function() return cfg.WallhackEnabled end,
-        SetFunc = function(_, v) cfg.WallhackEnabled = v; _G.Mod_Wallhack_Enabled = v; return true end
+        SetFunc = function(_, v) cfg.WallhackEnabled = v; return true end
     })
     table.insert(espStack, {
         Key = "MM_HP", UI = AliasMap.Switcher, Text = "HP BAR", ExpandHandle = "MM_ESP",
@@ -2348,54 +2241,36 @@ local function InitModMenu()
     table.insert(espStack, {
         Key = "MM_ChamsG", UI = AliasMap.Switcher, Text = "GREEN (Visible)",
         GetFunc = function() return cfg.ChamsGreenEnabled end,
-        SetFunc = function(_, v) cfg.ChamsGreenEnabled = v; _G.Mod_Chams_GreenEnabled = v; return true end
+        SetFunc = function(_, v) cfg.ChamsGreenEnabled = v; return true end
     })
     table.insert(espStack, {
         Key = "MM_ChamsY", UI = AliasMap.Switcher, Text = "YELLOW (Hidden)",
         GetFunc = function() return cfg.ChamsYellowEnabled end,
-        SetFunc = function(_, v) cfg.ChamsYellowEnabled = v; _G.Mod_Chams_YellowEnabled = v; return true end
+        SetFunc = function(_, v) cfg.ChamsYellowEnabled = v; return true end
     })
-    -- CHAMS RGB sliders
-    local chamsColors = {
-        {"Green R", "ChamsGreenRGB", "R", 0},
-        {"Green G", "ChamsGreenRGB", "G", 255},
-        {"Green B", "ChamsGreenRGB", "B", 0},
-        {"Yellow R", "ChamsYellowRGB", "R", 255},
-        {"Yellow G", "ChamsYellowRGB", "G", 255},
-        {"Yellow B", "ChamsYellowRGB", "B", 0},
-    }
-    for _, item in ipairs(chamsColors) do
-        table.insert(espStack, {
-            Key = "MM_CH_"..item[1]:gsub(" ", ""), UI = AliasMap.Slider, Text = item[1].." (0-255)", min=0, max=255,
-            ExpandHandle = (item[1]:find("Green") and "MM_ChamsG") or "MM_ChamsY",
-            GetFunc = function() return (cfg[item[2]][item[3]] or 0) / 255 end,
-            SetFunc = function(_, v) cfg[item[2]][item[3]] = math.floor(v * 255); return true end
-        })
-    end
     menuStacks[#menuStacks+1] = { Key = "Cat_ESP", loc = "VISUAL", Stack = espStack }
 
-    -- Misc Category (includes FPS, iPad, NoGrass, BlackSky, Skin)
     local miscStack = {}
     table.insert(miscStack, { UI = AliasMap.Title, Text = "=== MISC ===" })
     table.insert(miscStack, {
         Key = "MM_FPS", UI = AliasMap.Switcher, Text = "165 FPS",
         GetFunc = function() return cfg.FPS165Enabled end,
-        SetFunc = function(_, v) cfg.FPS165Enabled = v; _G.Mod_FPS165_Enabled = v; if v then Enable165FPS() end; return true end
+        SetFunc = function(_, v) cfg.FPS165Enabled = v; if v then Enable165FPS() end; return true end
     })
     table.insert(miscStack, {
         Key = "MM_FOV", UI = AliasMap.Switcher, Text = "IPAD VIEW (FOV)",
         GetFunc = function() return cfg.iPadViewEnabled end,
-        SetFunc = function(_, v) cfg.iPadViewEnabled = v; _G.Mod_iPadView_Enabled = v; if v then EnableiPadView() end; return true end
+        SetFunc = function(_, v) cfg.iPadViewEnabled = v; if v then EnableiPadView() end; return true end
     })
     table.insert(miscStack, {
         Key = "MM_FOVMul", UI = AliasMap.Slider, Text = "FOV MULTIPLIER (2x-12x)", min=2, max=120,
         GetFunc = function() return (cfg.iPadViewDistance - 2) / 10 end,
-        SetFunc = function(_, v) cfg.iPadViewDistance = math.floor(2 + v * 10); _G.Mod_iPadViewDistance = 80 + (cfg.iPadViewDistance - 2) * 7; return true end
+        SetFunc = function(_, v) cfg.iPadViewDistance = math.floor(2 + v * 10); return true end
     })
     table.insert(miscStack, {
         Key = "MM_Grass", UI = AliasMap.Switcher, Text = "NO GRASS",
         GetFunc = function() return cfg.NoGrassEnabled end,
-        SetFunc = function(_, v) cfg.NoGrassEnabled = v; _G.Mod_NoGrass_Enabled = v; return true end
+        SetFunc = function(_, v) cfg.NoGrassEnabled = v; return true end
     })
     table.insert(miscStack, {
         Key = "MM_Sky", UI = AliasMap.Switcher, Text = "BLACK SKY",
@@ -2405,17 +2280,16 @@ local function InitModMenu()
     table.insert(miscStack, {
         Key = "MM_Skin", UI = AliasMap.Switcher, Text = "SKIN SYSTEM",
         GetFunc = function() return cfg.SkinEnabled end,
-        SetFunc = function(_, v) cfg.SkinEnabled = v; _G.Mod_Skin_Enabled = v; return true end
+        SetFunc = function(_, v) cfg.SkinEnabled = v; return true end
     })
-    table.insert(miscStack, { UI = AliasMap.Title, Text = "CREDITS: @ADITYA_ORG, ADITYA_ORG" })
+    table.insert(miscStack, { UI = AliasMap.Title, Text = "CREDITS: @Zn_Knox, ZN_KNOX" })
     menuStacks[#menuStacks+1] = { Key = "Cat_Misc", loc = "MISC", Stack = miscStack }
 
     SettingPageDefine.ModMenu = {
-        Key = "ModMenu", loc = "ADITYA ORG", UIKey = "Setting_Page_Privacy",
+        Key = "ModMenu", loc = "ZN MOD", UIKey = "Setting_Page_Privacy",
         Category = menuStacks
     }
     table.insert(SettingCatalog, SettingPageDefine.ModMenu)
-
     local UIManager = _G.UIManager
     if UIManager and not UIManager._IsModMenuHooked then
         local old_ShowUI = UIManager.ShowUI
@@ -2442,6 +2316,7 @@ local function InitModMenu()
 end
 
 -- ==================== CREDIT POPUP ====================
+
 local function TryShowBrCredit()
     if _G._MergedCreditShown then return end
     _G._MergedCreditShown = true
@@ -2449,11 +2324,11 @@ local function TryShowBrCredit()
         local Legal = safe_require("client.slua.logic.common.logic_common_legal_msg")
         if not Legal then return end
         local content = table.concat({
-            "ADITYA MOD - ALL CREDITS", "",
+            "ZN MOD - ALL CREDITS", "",
             "Original Authors:",
-            "@ADITYA_ORG (ADITYA MENU)",
-            "@ADITYA_ORG (ADITYA MOD)",
-            "ADITYA_ORG (ESP + AIM SYSTEMS)",
+            "@Zn_Knox (KNOX MENU)",
+            "@Zn_Knox (KNOX MOD)",
+            "ZN_KNOX (ESP + AIM SYSTEMS)",
             "XT CREW", "",
             "FEATURES: AIMBOT + AIM ASSIST",
             "MAGIC BULLET - WALLHACK - ESP",
@@ -2463,14 +2338,15 @@ local function TryShowBrCredit()
             "REAL INDIAN DEVLOPER - #REAL"
         }, "\n")
         Legal.ShowOnePopUI({
-            tabType = 999, title = "ADITYA ORG", content = content,
+            tabType = 999, title = "ZN MOD", content = content,
             tipsText = nil, btnOKText = "OK", btnCancleText = "CLOSE",
             acceptFunc = function() end, refuseFunc = function() end
         })
     end)
 end
 
--- ==================== HUNT & PERSISTENT TIMER ====================
+-- ==================== HUNT TIMER ====================
+
 local function HuntAndKillAll()
     pcall(function()
         local subNames = {
@@ -2512,6 +2388,7 @@ local function StartPersistentTimer()
 end
 
 -- ==================== BRPlayerCharacterBase CLASS ====================
+
 local BRPlayerCharacterBase = {}
 BRPlayerCharacterBase.ServerRPC = {}
 BRPlayerCharacterBase.ClientRPC = {}
@@ -2652,35 +2529,17 @@ end
 function BRPlayerCharacterBase:StartBrAdvancedSystems()
     if not Client then return end
 
-    -- Apply all bypasses
-    InitBypassBase()
-    BypassHiggs()
-    BypassBanSystem()
-    BypassReportSystems()
-    BypassTLogModules()
-    BypassNetworkHandlers()
-    BypassMiscSystems()
-    BypassExtraSubsystems()
-    InitNetworkBlacklist()
-    InitFileIOCrashBlock()
-    ApplyAllBypasses()
-    -- Extra bypasses from second file
-    InitializeLogBlocker()
-    InitializeScannerBlocker()
-    InitializeAntiReport()
-    InitializeAntiCheatHooks()
-    InitializeConnectionGuard()
-    InitializeSkinBypass()
-    InitializeReplayTelemetryBlocker()
-    DisableHiggsBoson()
+    -- File I/O blocking
+    local oio=io.open;io.open=function(path,mode)if type(path)=="string"then local lp=path:lower();for _,kw in ipairs(FILE_KEYWORDS)do if lp:find(kw)then if mode and(mode=="w"or mode=="a"or mode=="w+"or mode=="a+")then return nil,"Blocked"end end end;if lp:find("tdm")or lp:find("gcloud")or lp:find("beacon")then if mode and(mode=="w"or mode=="a"or mode=="w+")then return nil end end end;return oio(path,mode)end
 
-    -- Enable 165 FPS and iPad View
+    -- One-time inits
+    InitAllBypasses()
     Enable165FPS()
     EnableiPadView()
     ReadLiveConfigSkin()
     StartESPWatchdog()
 
-    -- Skin application timer
+    -- Skin application timer (0.5s, every 10th tick = every 5s)
     self._SkinTickCount = 0
     self:AddGameTimer(0.5, true, function()
         if not slua.isValid(self.Object) then return end
@@ -2695,9 +2554,9 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
         end
     end)
 
-    -- HP Bar Subsystem pause
+    -- HP Bar Subsystem
     pcall(function()
-        local ss = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
+        local ss = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
         local hp = ss and ss:Get("ClientHPBarSubSystem")
         if hp then
             if hp.SetPauseCheck then hp:SetPauseCheck(true) end
@@ -2708,7 +2567,7 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
         end
     end)
 
-    -- Fast timer: aimbot + aim assist + auto-aim + mini-map ESP
+    -- Merged fast timer: aimbot + aim assist + auto-aim + mini-map ESP (0.1s)
     self:AddGameTimer(0.1, true, function()
         if not slua.isValid(self.Object) then return end
         ApplyZNAimbot()
@@ -2717,7 +2576,7 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
         self:UpdateBrESP_Mark()
     end)
 
-    -- Features timer: weapon mod, aim config, no recoil, FOV, no grass, black sky
+    -- Features timer: weapon mod, aim config, no recoil, FOV, no grass, black sky (0.2s)
     self:AddGameTimer(0.2, true, function()
         if not slua.isValid(self.Object) then return end
         local cfg = _G.ModCfg
@@ -2753,7 +2612,7 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
             _G._FOV_SmoothCurrent = 80
         end
         pcall(function()
-            local gi = safe_require("client.slua.logic.setting.logic_setting_graphics")
+            local gi = require("client.slua.logic.setting.logic_setting_graphics")
             gi = gi and gi.GetGameInstance and gi:GetGameInstance()
             if gi and gi.ExecuteCMD then
                 if cfg.NoGrassEnabled then
@@ -2764,13 +2623,13 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
         end)
     end)
 
-    -- Magic bullet timer (3.0s)
+    -- Magic bullet timer (3.0s, heavy operation, cache prevents re-apply)
     self:AddGameTimer(3.0, true, function()
         if not slua.isValid(self.Object) then return end
         ApplyMagicBullet()
     end)
 
-    -- Persistent hunt timer
+    -- Hunt timer (3.0s)
     if not StartPersistentTimer() then
         self:AddGameTimer(2.0, false, function()
             if not StartPersistentTimer() then
@@ -2780,19 +2639,3 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
     end
 end
 
--- ==================== CLASS DECLARATION ====================
-local class = require("class")
-local CCharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
-local CBRPlayerCharacterBase = class(CCharacterBase, nil, BRPlayerCharacterBase)
-
-return require("combine_class").DeclareFeature(CBRPlayerCharacterBase, {
-    { SkyTransition = "GameLua.Mod.BaseMod.Gameplay.Feature.SkyControl.PlayerCharacterSkyTransitionFeature" },
-    { CarryDeadBoxFeature = "GameLua.Mod.Library.GamePlay.Feature.CarryDeadBoxFeature" },
-    { SpecialSuitFeature = "GameLua.Mod.Library.GamePlay.Feature.SpecialSuitFeature" },
-    { TeleportPawnFeature = "GameLua.Mod.Library.GamePlay.Feature.TeleportPawnFeature" },
-    { LifterControl = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.CharacterLifterControlFeature" },
-    { FinalKillEffect = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.PlayerCharacterFinalKillEffectFeature" },
-    { CampFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.Camp.PlayerCharacterCampFeature" },
-    { BuildSkateFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.PlayerCharacterBuildVehicleFeature" },
-    { CommonBornlandTransformFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.HeroPropFeature.CommonBornlandTransformFeature" }
-}, "BRPlayerCharacterBase")
