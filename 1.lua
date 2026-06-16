@@ -2662,4 +2662,6 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
             end
         end)
     end
-end
+end  -- end of StartBrAdvancedSystems function
+
+-- The script ends here; no extra code or unmatched parentheses.
