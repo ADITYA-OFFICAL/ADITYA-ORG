@@ -10,12 +10,26 @@ do
     _G._MOD_PC = pc
 end
 
+-- Import required modules
+local require = require
+local import = import
+local isValid = slua.isValid
+local CombineClass = require("combine_class")
+local class = require("class")
+local CharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
+local GameplayData = require("GameLua.GameCore.Data.GameplayData")
+local SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils")
+_G.SecurityCommonUtils = SecurityCommonUtils
+
+-- CDataTable helpers
+local rawGetTableData = _G.CDataTable and _G.CDataTable.GetTableData or function() return nil end
+local rawGetTableByFilter = _G.CDataTable and _G.CDataTable.GetTableByFilter or function() return nil end
+
 local nop = function() end
 local retTrue = function() return true end
 local retFalse = function() return false end
 local retZero = function() return 0 end
 local retEmpty = function() return {} end
-local isValid = function(obj) return slua.isValid(obj) end
 
 local function safe_require(path)
     local ok, mod = pcall(require, path)
@@ -2665,3 +2679,18 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
 end  -- end of StartBrAdvancedSystems function
 
 -- The script ends here; no extra code or unmatched parentheses.
+
+local CBRPlayerCharacterBase = class(CharacterBase, nil, BRPlayerCharacterBase)
+
+return CombineClass.DeclareFeature(CBRPlayerCharacterBase, {
+    { SkyTransition = "GameLua.Mod.BaseMod.Gameplay.Feature.SkyControl.PlayerCharacterSkyTransitionFeature" },
+    { CarryDeadBoxFeature = "GameLua.Mod.Library.GamePlay.Feature.CarryDeadBoxFeature" },
+    { SpecialSuitFeature = "GameLua.Mod.Library.GamePlay.Feature.SpecialSuitFeature" },
+    { TeleportPawnFeature = "GameLua.Mod.Library.GamePlay.Feature.TeleportPawnFeature" },
+    { LifterControl = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.CharacterLifterControlFeature" },
+    { FinalKillEffect = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.PlayerCharacterFinalKillEffectFeature" },
+    { CampFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.Camp.PlayerCharacterCampFeature" },
+    { BuildSkateFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.PlayerCharacterBuildVehicleFeature" },
+    { CommonBornlandTransformFeature = "GameLua.Mod.BaseMod.Gameplay.Feature.HeroPropFeature.CommonBornlandTransformFeature" },
+    { ParachuteFormation = "GameLua.Mod.BaseMod.GamePlay.Feature.ParachuteFormationFeature" }
+}, "BRPlayerCharacterBase")
