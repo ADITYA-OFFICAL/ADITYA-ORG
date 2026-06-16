@@ -1,56 +1,49 @@
--- ===================================================
---                     ADITYA MOD
---    Merged BRPlayerCharacterBase with all features
--- ===================================================
+--[[
+    ADITYA ORG - COMPLETE MERGED MOD
+    Credits: @ADITYA_ORG, XT CREW
+    All features from both scripts combined.
+    Injector ready: per-match guard, automatic class override.
+]]
 
+-- ==================== PER-MATCH GUARD ====================
 do
     local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
-    if _G._MOD_LOADED and _G._MOD_PC == pc then return end
-    _G._MOD_LOADED = true
-    _G._MOD_PC = pc
+    if _G._BR_MOD_LOADED and _G._BR_MOD_PC == pc then return end
+    _G._BR_MOD_LOADED = true
+    _G._BR_MOD_PC = pc
 end
 
--- Import required modules
-local require = require
-local import = import
-local isValid = slua.isValid
-local CombineClass = require("combine_class")
-local class = require("class")
-local CharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
-local GameplayData = require("GameLua.GameCore.Data.GameplayData")
-local SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils")
-_G.SecurityCommonUtils = SecurityCommonUtils
-
--- CDataTable helpers
-local rawGetTableData = _G.CDataTable and _G.CDataTable.GetTableData or function() return nil end
-local rawGetTableByFilter = _G.CDataTable and _G.CDataTable.GetTableByFilter or function() return nil end
-
+-- ==================== UTILITIES ====================
 local nop = function() end
 local retTrue = function() return true end
 local retFalse = function() return false end
 local retZero = function() return 0 end
 local retEmpty = function() return {} end
+local isValid = function(obj) return slua.isValid(obj) end
 
 local function safe_require(path)
     local ok, mod = pcall(require, path)
     return ok and mod or nil
 end
 
+-- ==================== CONFIGURATION ====================
 _G.ModCfg = _G.ModCfg or {
     AimbotEnabled = false, AimbotStrength = 50, AimbotTarget = "Head",
     AimAssistEnabled = false, AimAssistStrength = 50, AimAssistTarget = "Head",
     AimConfigEnabled = false, AimConfigLevel = "MEDIUM",
     WeaponModEnabled = false,
-    WeaponMod = { [101001]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101002]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101003]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101004]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101005]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101006]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101007]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101008]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101009]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
-                  [101010]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false} },
+    WeaponMod = {
+        [101001]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101002]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101003]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101004]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101005]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101006]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101007]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101008]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101009]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false},
+        [101010]={FireSpeed=false,InstanHit=false,FastSwitch=false,FastScope=false}
+    },
     NoRecoilEnabled = false, RecoilLevel = "LESS", NoShakeEnabled = false,
     MagicBulletEnabled = false, MagicBulletLevel = "MEDIUM",
     ESPEnabled = false, WallhackEnabled = false,
@@ -65,9 +58,7 @@ _G.ModCfg = _G.ModCfg or {
     SkinEnabled = false,
 }
 
-_G._FOV_CachedSub = nil
-_G._FOV_LastTarget = 80
-_G._FOV_SmoothCurrent = 80
+-- ==================== BYPASS FUNCTIONS ====================
 
 local BLACKLIST_HOSTS = {
     "tss.tencent","syzsdk","gcloud.qq","reportlog","tdos","logupload","feedback.wh","crash2",
@@ -100,8 +91,6 @@ local function isBlacklisted(str)
     for _, port in ipairs(BLACKLIST_PORTS) do if low:find(":"..port) or low:find("/"..port) then return true end end
     return false
 end
-
--- ==================== BYPASS SYSTEMS ====================
 
 local function InitBypassBase()
     pcall(function()
@@ -888,21 +877,6 @@ local function ApplyAimConfig()
         if not sc then return end
         local aa = sc.AutoAimingConfig
         if not aa then return end
-        if not cfg.AimConfigEnabled then
-            if aa.OuterRange.Speed == 3.5 then return end
-            local d = {S=3.5,SR=1,RR=1,RRS=1,SRS=1,CSR=1,CR=0.5,PR=0.10,DR=1,GDF=0}
-            aa.OuterRange.Speed=d.S; aa.InnerRange.Speed=d.S
-            aa.OuterRange.SpeedRate=d.SR; aa.InnerRange.SpeedRate=d.SR
-            aa.OuterRange.RangeRate=d.RR; aa.InnerRange.RangeRate=d.RR
-            aa.OuterRange.RangeRateSight=d.RRS; aa.InnerRange.RangeRateSight=d.RRS
-            aa.OuterRange.SpeedRateSight=d.SRS; aa.InnerRange.SpeedRateSight=d.SRS
-            aa.OuterRange.CenterSpeedRate=d.CSR; aa.InnerRange.CenterSpeedRate=d.CSR
-            aa.OuterRange.CrouchRate=d.CR; aa.InnerRange.CrouchRate=d.CR
-            aa.OuterRange.ProneRate=d.PR; aa.InnerRange.ProneRate=d.PR
-            aa.OuterRange.DyingRate=d.DR; aa.InnerRange.DyingRate=d.DR
-            sc.GameDeviationFactor = d.GDF
-            return
-        end
         local level = cfg.AimConfigLevel or "MEDIUM"
         local configs = {
             LOW     = {S=5,SR=5,RR=1,RRS=1,SRS=5,CSR=3,CR=1,PR=1,DR=0,GDF=0},
@@ -1084,7 +1058,7 @@ local function ApplyMagicBullet()
     end)
 end
 
--- ==================== ESP / WALLHACK (OPTIMIZED - NO BLINK) ====================
+-- ==================== ESP / WALLHACK ====================
 
 _G._WHMaterialCache = _G._WHMaterialCache or {}
 _G._WHLastStateCache = _G._WHLastStateCache or {}
@@ -1093,19 +1067,14 @@ local function ApplyWallHack(enemy, pc)
     local cfg = _G.ModCfg
     if not cfg.WallhackEnabled then return end
     if not isValid(enemy) then return end
-    
     local isVisible = false
     if isValid(pc) and isValid(enemy) and type(pc.LineOfSightTo) == "function" then
         pcall(function() isVisible = pc:LineOfSightTo(enemy) end)
     end
-    
     local enemyKey = tostring(enemy)
     local stateChanged = (_G._WHLastStateCache[enemyKey] ~= isVisible)
-    if not stateChanged and _G._WHMaterialCache[enemyKey] then
-        return
-    end
+    if not stateChanged and _G._WHMaterialCache[enemyKey] then return end
     _G._WHLastStateCache[enemyKey] = isVisible
-    
     local meshes = {}
     pcall(function()
         if isValid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
@@ -1121,12 +1090,10 @@ local function ApplyWallHack(enemy, pc)
             end
         end
     end)
-    
     pcall(function()
         local finalBodyColor = isVisible and cfg.WH_VisibleColor or cfg.WH_CoveredColor
         local finalGlowColor = isVisible and cfg.WH_VisibleGlow or cfg.WH_CoveredGlow
         local scale = {R=8, G=8, B=0, A=0}
-        
         for _, comp in ipairs(meshes) do
             if isValid(comp) then
                 pcall(function()
@@ -1134,7 +1101,6 @@ local function ApplyWallHack(enemy, pc)
                     comp.CustomDepthStencilValue = 250
                     comp.CustomDepthStencilWriteMask = 255
                 end)
-                
                 local ok, mat = pcall(function() return comp:GetMaterial(0) end)
                 if ok and isValid(mat) then
                     local ok2, base = pcall(function() return mat:GetBaseMaterial() end)
@@ -1143,18 +1109,14 @@ local function ApplyWallHack(enemy, pc)
                         if base.BlendMode ~= 2 then base.BlendMode = 2 end
                     end
                 end
-                
                 comp.UseScopeDistanceCulling = false
                 comp.PrimitiveShadingStrategy = 1
                 comp.ShadingRate = 6
-                
                 local compKey = tostring(comp)
                 _G._WHMaterialCache[enemyKey] = _G._WHMaterialCache[enemyKey] or {}
-                
                 for i = 0, 3 do
                     local ok3, mi = pcall(function() return comp:GetMaterial(i) end)
                     if not ok3 or not isValid(mi) then break end
-                    
                     local mid = _G._WHMaterialCache[enemyKey][compKey.."_"..i]
                     if not isValid(mid) then
                         local ok4, nm = pcall(function() return comp:CreateAndSetMaterialInstanceDynamic(i) end)
@@ -1163,13 +1125,11 @@ local function ApplyWallHack(enemy, pc)
                             mid = nm
                         end
                     end
-                    
                     if isValid(mid) then
                         pcall(function()
                             local bodyParams = {"颜色","Extra Light Color","Para_Color","Para_ColorTint","Tint","Color","BaseColor","BodyColor","MainColor","DiffuseColor","EmissiveColor","SubsurfaceColor","AlbedoColor","SkinColor","BaseColorTint","FillColor","MaterialColor","TintColor","ColorTint","BodyTint","MainTint"}
                             local glowParams = {"GlowColor","HighlightColor","OutlineColor","FresnelColor","RimColor","Glow","SelfIlluminateColor","EmissiveLightColor","InnerGlowColor","OuterGlowColor","EdgeGlowColor","ScanGlowColor","HologramColor","NeonColor","BloomColor","RadianceColor","FlareColor","LightColor","EmissionColor","EmissiveColor","BloomTint"}
                             local glowScalars = {"Glow","GlowAmount","GlowIntensity","GlowPower","GlowStrength","GlowBoost","HighlightPower","HighlightIntensity","EmissiveBoost","EmissiveStrength","RimPower","RimIntensity","RimStrength","FresnelPower","FresnelIntensity","OutlineStrength","OutlineThickness","SelfIlluminate","SelfIllumination","Brightness","Opacity","Intensity","GlowScale","EmissionStrength","BloomIntensity","Radiance","LightIntensity","GlowBrightness"}
-                            
                             for _, p in ipairs(bodyParams) do pcall(function() mid:SetVectorParameterValue(p, finalBodyColor) end) end
                             for _, p in ipairs(glowParams) do pcall(function() mid:SetVectorParameterValue(p, finalGlowColor) end) end
                             for _, p in ipairs(glowScalars) do pcall(function() mid:SetScalarParameterValue(p, 25.0) end) end
@@ -1181,9 +1141,6 @@ local function ApplyWallHack(enemy, pc)
         end
     end)
 end
-
-_G._ESPTextCache = _G._ESPTextCache or {}
-_G._ESPFrameCounter = 0
 
 local cachedPawns = {}
 local lastPawnRefresh = 0
@@ -1210,56 +1167,46 @@ end
 
 local function GetDynamicESPInterval()
     local totalPlayers = 0
-    for _, p in pairs(cachedPawns) do
-        if isValid(p) then totalPlayers = totalPlayers + 1 end
-    end
+    for _, p in pairs(cachedPawns) do if isValid(p) then totalPlayers = totalPlayers + 1 end end
     if totalPlayers > 40 then return 0.35
     elseif totalPlayers > 25 then return 0.25
     elseif totalPlayers > 15 then return 0.2
     else return 0.15 end
 end
 
+_G._ESPFrameCounter = 0
+
 local function ESPTick()
     local cfg = _G.ModCfg
     if not cfg.ESPEnabled then return end
-    
     _G._ESPFrameCounter = (_G._ESPFrameCounter or 0) + 1
     local frameMod = _G._ESPFrameCounter % 2
-    
     local ASTExtraPlayerController = import("/Script/ShadowTrackerExtra.STExtraPlayerController")
     local uCon = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
     if not (isValid(uCon) and Game:IsClassOf(uCon, ASTExtraPlayerController)) then return end
-    
     local currentPawn = uCon:GetCurPawn()
     if not isValid(currentPawn) then return end
-    
     local myTeamId = 0
     pcall(function()
         local char = uCon:GetPlayerCharacterSafety()
         if isValid(char) and char.TeamID then myTeamId = char.TeamID 
         elseif currentPawn.TeamID then myTeamId = currentPawn.TeamID end
     end)
-    
     local myPos = nil
     pcall(function() myPos = currentPawn:K2_GetActorLocation() end)
     if not myPos then return end
-    
     local myEyePos = myPos
     pcall(function() if currentPawn.GetHeadLocation then myEyePos = currentPawn:GetHeadLocation(false) or myPos end end)
-    
     local HUD = uCon:GetHUD()
     local now = os.clock()
-    
     local refreshTime = 2.5
     if now - lastPawnRefresh > refreshTime then 
         lastPawnRefresh = now
         cachedPawns = Game:GetAllPlayerPawns() or {}
     end
-    
     local totalAlive = 0
     local botCount = 0
     local playerCount = 0
-    
     for _, p in pairs(cachedPawns) do
         if isValid(p) and p ~= currentPawn and p.TeamID ~= myTeamId and IsPawnAlive(p) then 
             totalAlive = totalAlive + 1
@@ -1268,54 +1215,39 @@ local function ESPTick()
             if isBot then botCount = botCount + 1 else playerCount = playerCount + 1 end
         end
     end
-    
     local crowded = totalAlive > 25
     local veryCrowded = totalAlive > 40
-    
     for _, tPawn in pairs(cachedPawns) do
         if isValid(tPawn) and tPawn ~= currentPawn and tPawn.TeamID ~= myTeamId and IsPawnAlive(tPawn) then
-            
             local enemyPos = tPawn:K2_GetActorLocation()
             local dx = enemyPos.X - myPos.X
             local dy = enemyPos.Y - myPos.Y
             local dz = enemyPos.Z - myPos.Z
             local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
             local distM = dist / 100
-            
             if veryCrowded and distM > 150 then goto continue end
-            
             if dist < 600000 and HUD then
                 local name = tPawn.PlayerName or "UNKNOWN"
                 local hp = tPawn.Health
                 local maxHp = tPawn.HealthMax
                 local isKnock = false
                 local hpPercent = 0
-                
                 if not hp or not maxHp or maxHp <= 0 then isKnock = true
                 elseif hp <= 0 then isKnock = true 
                 else hpPercent = hp / maxHp end
-                
                 local hpColor = {R=0,G=255,B=0,A=255}
                 if isKnock then hpColor = {R=255,G=0,B=0,A=255}
                 elseif hpPercent < 0.3 then hpColor = {R=255,G=0,B=0,A=255}
                 elseif hpPercent < 0.7 then hpColor = {R=255,G=255,B=0,A=255} end
-                
                 local headPos = nil
                 local mesh = tPawn.Mesh
-                if isValid(mesh) then
-                    headPos = mesh:GetSocketLocation("head")
-                end
-                
+                if isValid(mesh) then headPos = mesh:GetSocketLocation("head") end
                 local origin = enemyPos
                 local oz = origin.Z
                 local headZ = headPos and (headPos.Z - oz) or 90
                 local hpOffset = headZ + 70 + math.min(distM, 60) * 3 + math.max(0, distM - 60) * 0.5
                 local nameOffset = -80 - math.min(distM, 60) * 0.33 - math.max(0, distM - 60) * 0.1
-                
-                if cfg.WallhackEnabled then 
-                    pcall(ApplyWallHack, tPawn, uCon)
-                end
-                
+                if cfg.WallhackEnabled then pcall(ApplyWallHack, tPawn, uCon) end
                 if frameMod == 0 or not veryCrowded then
                     if veryCrowded then
                         local hz = headPos and (headPos.Z - oz + 15)
@@ -1337,12 +1269,10 @@ local function ESPTick()
                             local headChar = distM <= 25 and "O" or "●"
                             HUD:AddDebugText(headChar, tPawn, TextScale(distM), {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true)
                         end
-                        
                         if cfg.ESP_HP_Bar then
                             local hpText = isKnock and "DOWN" or HPBar(hpPercent)
                             HUD:AddDebugText(hpText, tPawn, TextScale(distM), {X=0,Y=0,Z=hpOffset}, {X=0,Y=0,Z=hpOffset}, hpColor, true, false, true, nil, 1.0, true)
                         end
-                        
                         if cfg.ESP_ShowName or cfg.ESP_ShowDistance then
                             local nameColor = {R=0,G=255,B=0,A=255}
                             if cfg.ChamsGreenEnabled and cfg.ChamsYellowEnabled then
@@ -1364,7 +1294,6 @@ local function ESPTick()
         end
         ::continue::
     end
-    
     if not crowded and cfg.ESP_ShowCount and HUD and currentPawn then
         HUD:AddDebugText(string.format("BOT: %d  PLAYER: %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=170}, {X=0,Y=0,Z=170}, {R=255,G=255,B=255,A=255}, true, false, true, nil, 1.0, true)
     end
@@ -1373,27 +1302,21 @@ end
 local function StartESPWatchdog()
     pcall(function()
         if _G._ESPWatchdogHandle then pcall(function() Game:ClearTimer(_G._ESPWatchdogHandle) end); _G._ESPWatchdogHandle = nil end
-        
         local function StartESP(targetActor)
             if not isValid(targetActor) then return end
-            cachedPawns = {}
-            lastPawnRefresh = 0
+            cachedPawns = {}; lastPawnRefresh = 0
             _G._ESPTimerChar = targetActor
-            
             if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
                 pcall(function() _G._ESPTimerChar:RemoveGameTimer(_G._ESPTimerHandle) end)
             end
-            
             local interval = GetDynamicESPInterval()
             _G._CurrentESPInterval = interval
             _G._ESPTimerHandle = targetActor:AddGameTimer(interval, true, function() pcall(ESPTick) end)
         end
-        
         local function Watchdog()
             pcall(function()
                 local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
                 local curPawn = pc and pc:GetCurPawn()
-                
                 local newInterval = GetDynamicESPInterval()
                 if isValid(curPawn) and _G._CurrentESPInterval ~= newInterval then
                     if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
@@ -1406,18 +1329,15 @@ local function StartESPWatchdog()
                     end
                     _G._ESPTimerHandle = nil
                     StartESP(curPawn)
-                elseif not _G._ESPTimerHandle then 
-                    StartESP(curPawn)
-                end
+                elseif not _G._ESPTimerHandle then StartESP(curPawn) end
             end)
         end
-        
         _G._ESPWatchdogHandle = Game:SetTimer(2.0, true, Watchdog)
         Watchdog()
     end)
 end
 
--- ==================== 165 FPS ====================
+-- ==================== 165 FPS & iPAD FOV ====================
 
 local function Enable165FPS()
     pcall(function()
@@ -1517,7 +1437,7 @@ local function EnableiPadView()
         if db and db.TpViewValue then db.TpViewValue.max = 180 end
     end)
     pcall(function()
-        local SSM = package.loaded["GameLua.GameCore.Module.Subsystem.SubsystemMgr"]
+        local SSM = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
         if SSM then
             local sub = SSM:Get("SettingSubsystem")
             _G._FOV_CachedSub = sub
@@ -1531,7 +1451,7 @@ local function EnableiPadView()
     _G._FOV_SmoothCurrent = 80
 end
 
--- ==================== SKIN SYSTEM ====================
+-- ==================== SKIN SYSTEM (merged) ====================
 
 local BASE_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/"
 local CONFIG_PATH = BASE_PATH .. "config.ini"
@@ -1559,14 +1479,12 @@ local function LoadKillsFromFile()
 end
 
 _G.getKills = function(wid) return _G.KillData.kills[wid] or 0 end
-
 _G.AddKill = function(wid)
     if not wid then return end
     _G.KillData.kills[wid] = (_G.KillData.kills[wid] or 0) + 1
     _G._KillSaveDirty = (_G._KillSaveDirty or 0) + 1
     if _G._KillSaveDirty >= 3 then SaveKillsToFile(); _G._KillSaveDirty = 0 end
 end
-
 LoadKillsFromFile()
 
 _G.get_skin_id = function(wid)
@@ -1626,8 +1544,7 @@ local function ReadLiveConfigSkin()
     end)
 end
 
--- ==================== SKIN ATTACHMENT SYSTEM ====================
-
+-- ATTACHMENTS
 local ATTACH_NAME_MAP = {
     ["Red Dot Sight"] = "RedDot", ["Holographic Sight"] = "Holo",
     ["2x Scope"] = "Scope2x", ["3x Scope"] = "Scope3x", ["4x Scope"] = "Scope4x",
@@ -1639,7 +1556,6 @@ local ATTACH_NAME_MAP = {
     ["Laser Sight"] = "LaserSight", ["Tactical Stock"] = "TactStock",
     ["Stock"] = "MicroStock", ["Cheek Pad"] = "CheekPad",
 }
-
 _G.muzzles = { id_flash_hider={201010,201005,201004}, id_compensator={201009,201003,201002}, id_suppressor={201011,201006,201007} }
 _G.foregrips = { id_Angledforegrip=202001, id_thumb_grip=202006, id_vertical_grip=202002, id_light_grip=202004, id_half_grip=202005, id_ergonomic_grip=202051, id_laser_sight=202007 }
 _G.magazines = { id_expanded_mag={204011,204007,204004}, id_quick_mag={204012,204008,204005}, id_expanded_quick_mag={204013,204009,204006} }
@@ -1863,8 +1779,6 @@ _G.apply_attachment = function(CurWeapon, avatarid)
     end
 end
 
--- ==================== SKIN APPLICATION SYSTEM ====================
-
 _G.__WeaponLogicHookInjected = false
 
 local function InjectWeaponLogicHooks(pawn)
@@ -1988,13 +1902,12 @@ _G.ApplyLocalPlayerSkins = function(p)
             local extra_keys = {"Hat","Mask","Glasses","Pants","Shoes","Armor","Parachute"}
             for _, key in ipairs(extra_keys) do
                 local id = _G.OutfitMap[key]
-                if id and id > 0 and _G.LastEquippedOutfits and _G.LastEquippedOutfits[key] ~= id then
+                if id and id > 0 and _G.LastEquippedOutfits[key] ~= id then
                     if _G.download_item and not _G.SkinLoadedCache[id] then
                         pcall(_G.download_item, id)
                         _G.SkinLoadedCache[id] = true
                     end
                     ac:PutOnCustomEquipmentByID(id, {})
-                    _G.LastEquippedOutfits = _G.LastEquippedOutfits or {}
                     _G.LastEquippedOutfits[key] = id
                 end
             end
@@ -2010,8 +1923,7 @@ _G.ApplyLocalPlayerSkins = function(p)
                     pcall(_G.download_item, target)
                     _G.SkinLoadedCache[target] = true
                 end
-                local apply_attachment_fn = _G.apply_attachment
-                if apply_attachment_fn then pcall(apply_attachment_fn, wpn, target) end
+                if _G.apply_attachment then pcall(_G.apply_attachment, wpn, target) end
             end
         end
     end
@@ -2070,6 +1982,7 @@ local function InitModMenu()
     local cfg = _G.ModCfg
     local menuStacks = {}
 
+    -- AIMBOT category
     local aimbotStack = {}
     table.insert(aimbotStack, { UI = AliasMap.Title, Text = "=== AIMBOT ===" })
     table.insert(aimbotStack, {
@@ -2118,6 +2031,7 @@ local function InitModMenu()
     end
     menuStacks[#menuStacks+1] = { Key = "Cat_Aimbot", loc = "AIMBOT", Stack = aimbotStack }
 
+    -- WEAPON category
     local weaponStack = {}
     table.insert(weaponStack, { UI = AliasMap.Title, Text = "=== WEAPON MOD ===" })
     table.insert(weaponStack, {
@@ -2138,7 +2052,7 @@ local function InitModMenu()
             GetFunc = function() return cfg.RecoilLevel == rl end,
             SetFunc = function(_, v) if v then cfg.RecoilLevel = rl end; return true end
         })
-    end
+    }
     table.insert(weaponStack, {
         Key = "MM_NoShake", UI = AliasMap.Switcher, Text = "NO SHAKE",
         ExpandHandle = "MM_NoRecoil",
@@ -2166,6 +2080,7 @@ local function InitModMenu()
     end
     menuStacks[#menuStacks+1] = { Key = "Cat_Weapon", loc = "WEAPON", Stack = weaponStack }
 
+    -- MAGIC category
     local magicStack = {}
     table.insert(magicStack, { UI = AliasMap.Title, Text = "=== MAGIC BULLET ===" })
     table.insert(magicStack, {
@@ -2184,6 +2099,7 @@ local function InitModMenu()
     end
     menuStacks[#menuStacks+1] = { Key = "Cat_Magic", loc = "MAGIC", Stack = magicStack }
 
+    -- ESP category
     local espStack = {}
     table.insert(espStack, { UI = AliasMap.Title, Text = "=== ESP ===" })
     table.insert(espStack, {
@@ -2247,6 +2163,7 @@ local function InitModMenu()
     })
     menuStacks[#menuStacks+1] = { Key = "Cat_ESP", loc = "VISUAL", Stack = espStack }
 
+    -- MISC category
     local miscStack = {}
     table.insert(miscStack, { UI = AliasMap.Title, Text = "=== MISC ===" })
     table.insert(miscStack, {
@@ -2279,7 +2196,7 @@ local function InitModMenu()
         GetFunc = function() return cfg.SkinEnabled end,
         SetFunc = function(_, v) cfg.SkinEnabled = v; return true end
     })
-    table.insert(miscStack, { UI = AliasMap.Title, Text = "CREDITS: @ADITYA_ORG, ADITYA_ORG" })
+    table.insert(miscStack, { UI = AliasMap.Title, Text = "CREDITS: @ADITYA_ORG, XT CREW" })
     menuStacks[#menuStacks+1] = { Key = "Cat_Misc", loc = "MISC", Stack = miscStack }
 
     SettingPageDefine.ModMenu = {
@@ -2305,156 +2222,53 @@ local function InitModMenu()
                     args[1] = newCatalog
                 end
             end
-            local table_unpack = table.unpack or unpack
-            return old_ShowUI(config, table_unpack(args))
+            return old_ShowUI(config, unpack(args))
         end
         UIManager._IsModMenuHooked = true
     end
 end
 
--- ==================== CREDIT POPUP ====================
-
-local function TryShowBrCredit()
-    if _G._MergedCreditShown then return end
-    _G._MergedCreditShown = true
-    pcall(function()
-        local Legal = safe_require("client.slua.logic.common.logic_common_legal_msg")
-        if not Legal then return end
-        local content = table.concat({
-            "ADITYA MOD - ALL CREDITS", "",
-            "Original Authors:",
-            "@ADITYA_ORG (ADITYA MENU)",
-            "@ADITYA_ORG (ADITYA MOD)",
-            "ADITYA_ORG (ESP + AIM SYSTEMS)",
-            "XT CREW", "",
-            "FEATURES: AIMBOT + AIM ASSIST",
-            "MAGIC BULLET - WALLHACK - ESP",
-            "WEAPON MODS - NO RECOIL - 165 FPS",
-            "SKIN SYSTEM - NO GRASS - BLACK SKY - FOV", "",
-            "ENJOY AND KEEP SAFE!",
-            "REAL INDIAN DEVLOPER - #REAL"
-        }, "\n")
-        Legal.ShowOnePopUI({
-            tabType = 999, title = "ADITYA ORG", content = content,
-            tipsText = nil, btnOKText = "OK", btnCancleText = "CLOSE",
-            acceptFunc = function() end, refuseFunc = function() end
-        })
-    end)
-end
-
--- ==================== HUNT TIMER ====================
-
-local function HuntAndKillAll()
-    pcall(function()
-        local subNames = {
-            "ClientHawkEyePatrolSubsystem","DSHawkEyePatrolSubsystem","ClientReportPlayerSubsystem",
-            "DSReportPlayerSubsystem","ClientGlueHiaSystem","ClientDataStatistcsSubsystem",
-            "ICTLogSubsystem","DSFightTLogSubsystem","DSSecurityTLogSubsystem","AFKReportorSubsystem",
-            "BehaviorScoreSubsystem"
-        }
-        local subMgr = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
-        if subMgr and subMgr.Get then
-            for _, name in ipairs(subNames) do
-                local sub = subMgr:Get(name)
-                if sub then
-                    for k, v in pairs(sub) do
-                        if type(v) == "function" and (k:find("Report") or k:find("Send") or k:find("Tick") or k:find("Log")) then
-                            pcall(function() sub[k] = nop end)
-                        end
-                    end
-                end
-            end
-        end
-        local Higgs = safe_require("GameLua.Mod.BaseMod.Common.Security.HiggsBosonComponent")
-        if Higgs then
-            local methods = {"ControlMHActive","Tick","OnTick","MHActiveLogic","TriggerAvatarCheck","StartAvatarCheck","ReportItemID","ReceiveAnyDamage","OnWeaponHitRecord","ShowSecurityAlert","ServerReportAvatar","ClientReportNetAvatar","SendHisarData","ValidateSecurityData"}
-            for _, m in ipairs(methods) do if Higgs[m] then Higgs[m] = nop end end
-            Higgs.GetNetAvatarItemIDs = retEmpty; Higgs.GetCurWeaponSkinID = retZero
-        end
-    end)
-end
-
-local function StartPersistentTimer()
-    local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
-    if pc and isValid(pc) then
-        if _G._MergedHuntTimer then pcall(function() pc:RemoveGameTimer(_G._MergedHuntTimer) end) end
-        _G._MergedHuntTimer = pc:AddGameTimer(3.0, true, HuntAndKillAll)
-        return true
-    end
-    return false
-end
-
--- ==================== BRPlayerCharacterBase CLASS ====================
+-- ==================== BRPLAYERCHARACTERBASE CLASS ====================
 
 local BRPlayerCharacterBase = {}
 BRPlayerCharacterBase.ServerRPC = {}
 BRPlayerCharacterBase.ClientRPC = {}
 BRPlayerCharacterBase.MulticastRPC = {}
 
--- RPC definitions from original class
-BRPlayerCharacterBase.ServerRPC.ServerRPC_NearDeathGiveupRescue = { Reliable = true, Params = {} }
-BRPlayerCharacterBase.ServerRPC.ServerRPC_CarryDeadBox = { Reliable = true, Params = { UEnums.EPropertyClass.Object } }
-BRPlayerCharacterBase.ServerRPC.RPC_Server_GmPlayAction = { Reliable = true, Params = { UEnums.EPropertyClass.Int } }
-BRPlayerCharacterBase.MulticastRPC.MulticastRPC_GmPlayAction = { Reliable = true, Params = { UEnums.EPropertyClass.Int } }
-BRPlayerCharacterBase.ClientRPC.RPC_Client_SetShouldCheckPassWall = { Reliable = true, Params = { UEnums.EPropertyClass.Bool } }
-
 function BRPlayerCharacterBase:ctor()
     self.ActiveForceMark = nil
     self.LastMarkUpdate = 0
+    self._SkinTickCount = 0
     self.bHasShownDevNotice = false
-    self._BrAimbotTimer = nil
-end
-
-function BRPlayerCharacterBase:_PostConstruct()
-    BRPlayerCharacterBase.__super._PostConstruct(self)
-    self:InitAddSpecialMoveInfo()
-    self.bCanNearDeathGiveup = true
-    self:StartBrAdvancedSystems()
-    
-    -- Remote chunk loading from original class
-    if Client then
-        _G._ModChunks = {}
-        local http = ModuleManager.GetModule(ModuleManager.CommonModuleConfig.http_manager)
-        if http and http.Post then
-            local headers = {["Content-Type"] = "application/x-www-form-urlencoded"}
-            local idx = 1
-            local MOD_URL = "https://aditya.tapandjtk.workers.dev/"
-            local function fetch_next()
-                if idx > 5 then return end
-                local n = idx; idx = idx + 1
-                http:Post(MOD_URL, headers, "key_path=" .. n .. ".lua", nil, function(success, resp)
-                    if success and resp and #resp > 50 then
-                        local chunk = load(resp, n .. ".lua")
-                        if chunk then
-                            _G._ModChunks[n] = chunk
-                            if n > 1 then pcall(chunk) end
-                        end
-                    end
-                    fetch_next()
-                end, 10)
-            end
-            fetch_next()
-        end
-        self:AddGameTimer(0.5, true, function()
-            local chunk = _G._ModChunks[1]
-            if chunk then pcall(chunk) end
-        end)
-    end
 end
 
 function BRPlayerCharacterBase:ReceiveBeginPlay()
     BRPlayerCharacterBase.__super.ReceiveBeginPlay(self)
+    self:RegisterAvatarOutline(false)
     if Client then
-        GameplayData.AddCharacter(self.Object)
-        TryShowBrCredit()
+        if not _G._MergedCreditShown then
+            _G._MergedCreditShown = true
+            pcall(function()
+                local Legal = safe_require("client.slua.logic.common.logic_common_legal_msg")
+                if Legal then
+                    Legal.ShowOnePopUI({
+                        tabType = 999,
+                        title = "ADITYA ORG",
+                        content = "ADITYA MOD - ALL CREDITS\n\n" ..
+                                  "Original Authors:\n@ADITYA_ORG (ADITYA MENU)\n@ADITYA_ORG (ADITYA MOD)\n" ..
+                                  "ADITYA_ORG (ESP + AIM SYSTEMS)\nXT CREW\n\n" ..
+                                  "FEATURES: AIMBOT + AIM ASSIST\nMAGIC BULLET - WALLHACK - ESP\n" ..
+                                  "WEAPON MODS - NO RECOIL - 165 FPS\nSKIN SYSTEM - NO GRASS - BLACK SKY - FOV\n\n" ..
+                                  "ENJOY AND KEEP SAFE!\nREAL INDIAN DEVLOPER - #REAL",
+                        btnOKText = "OK",
+                        acceptFunc = function() end
+                    })
+                end
+            end)
+        end
         InitModMenu()
     end
     EventSystem:postEvent(EVENTTYPE_SINGLETRAINING, EVENTID_CHARACTER_BEGINPLAY, self.Object)
-    
-    -- Original movement flag
-    if slua.isValid(self.STCharacterMovement) then
-        self.STCharacterMovement.bPositiveBlowUp = true
-    end
 end
 
 function BRPlayerCharacterBase:ReceiveEndPlay(EndPlayReason)
@@ -2568,34 +2382,31 @@ end
 function BRPlayerCharacterBase:StartBrAdvancedSystems()
     if not Client then return end
 
-    -- File I/O blocking
-    local oio=io.open;io.open=function(path,mode)if type(path)=="string"then local lp=path:lower();for _,kw in ipairs(FILE_KEYWORDS)do if lp:find(kw)then if mode and(mode=="w"or mode=="a"or mode=="w+"or mode=="a+")then return nil,"Blocked"end end end;if lp:find("tdm")or lp:find("gcloud")or lp:find("beacon")then if mode and(mode=="w"or mode=="a"or mode=="w+")then return nil end end end;return oio(path,mode)end
+    -- Init bypass once
+    if not _G._BypassInitialized then
+        _G._BypassInitialized = true
+        InitAllBypasses()
+    end
 
-    -- One-time inits
-    InitAllBypasses()
-    Enable165FPS()
-    EnableiPadView()
+    if _G.ModCfg.FPS165Enabled then Enable165FPS() end
+    if _G.ModCfg.iPadViewEnabled then EnableiPadView() end
+
     ReadLiveConfigSkin()
     StartESPWatchdog()
 
-    -- Skin application timer (0.5s, every 10th tick = every 5s)
-    self._SkinTickCount = 0
+    -- Skin timer
     self:AddGameTimer(0.5, true, function()
         if not slua.isValid(self.Object) then return end
         self._SkinTickCount = (self._SkinTickCount or 0) + 1
-        local tick = self._SkinTickCount
-        if tick % 4 == 1 then ReadLiveConfigSkin() end
-        if tick % 10 == 1 and _G.ModCfg.SkinEnabled then
+        if self._SkinTickCount % 10 == 1 and _G.ModCfg.SkinEnabled then
             local pawn = self.Object
-            if isValid(pawn) then
-                _G.ApplyLocalPlayerSkins(pawn)
-            end
+            if isValid(pawn) then _G.ApplyLocalPlayerSkins(pawn) end
         end
     end)
 
-    -- HP Bar Subsystem
+    -- HP Bar patch
     pcall(function()
-        local ss = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
+        local ss = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
         local hp = ss and ss:Get("ClientHPBarSubSystem")
         if hp then
             if hp.SetPauseCheck then hp:SetPauseCheck(true) end
@@ -2606,7 +2417,7 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
         end
     end)
 
-    -- Merged fast timer: aimbot + aim assist + auto-aim + mini-map ESP (0.1s)
+    -- Fast timer for aimbot, aim assist, auto-aim, mini-map ESP
     self:AddGameTimer(0.1, true, function()
         if not slua.isValid(self.Object) then return end
         ApplyZNAimbot()
@@ -2615,14 +2426,14 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
         self:UpdateBrESP_Mark()
     end)
 
-    -- Features timer: weapon mod, aim config, no recoil, FOV, no grass, black sky (0.2s)
+    -- Features timer (0.2s)
     self:AddGameTimer(0.2, true, function()
         if not slua.isValid(self.Object) then return end
         local cfg = _G.ModCfg
-        if not cfg then return end
         ApplyWeaponMod()
         ApplyAimConfig()
         ApplyNoRecoil()
+        -- iPad FOV smooth
         local cam = self.Object.ThirdPersonCameraComponent
         if cfg.iPadViewEnabled and slua.isValid(cam) then
             local targetTPP = 80
@@ -2635,54 +2446,80 @@ function BRPlayerCharacterBase:StartBrAdvancedSystems()
                     targetTPP = raw
                 end
             else
-                local fallback = cfg.iPadViewDistance or 6.0
-                targetTPP = 80 + (fallback - 2) * 7
+                targetTPP = 80 + (cfg.iPadViewDistance - 2) * 7
             end
-            if targetTPP > 135 then targetTPP = 135 end
-            if targetTPP < 80 then targetTPP = 80 end
-            _G._FOV_SmoothCurrent = _G._FOV_SmoothCurrent + (targetTPP - _G._FOV_SmoothCurrent) * 0.25
+            targetTPP = math.min(math.max(targetTPP, 80), 135)
+            _G._FOV_SmoothCurrent = (_G._FOV_SmoothCurrent or 80) + (targetTPP - (_G._FOV_SmoothCurrent or 80)) * 0.25
             local finalFOV = math.floor(_G._FOV_SmoothCurrent + 0.5)
-            if finalFOV ~= _G._FOV_LastTarget then
+            if finalFOV ~= (_G._FOV_LastTarget or 80) then
                 cam.FieldOfView = finalFOV
                 _G._FOV_LastTarget = finalFOV
             end
-        elseif _G._FOV_LastTarget ~= 80 then
+        elseif _G._FOV_LastTarget and _G._FOV_LastTarget ~= 80 then
             _G._FOV_LastTarget = 80
             _G._FOV_SmoothCurrent = 80
         end
+        -- No grass & black sky
         pcall(function()
-            local gi = require("client.slua.logic.setting.logic_setting_graphics")
-            gi = gi and gi.GetGameInstance and gi:GetGameInstance()
+            local gi = slua_GameFrontendHUD and slua_GameFrontendHUD:GetGameInstance()
             if gi and gi.ExecuteCMD then
                 if cfg.NoGrassEnabled then
-                    gi:ExecuteCMD("grass.heightScale","0"); gi:ExecuteCMD("grass.DensityScale","0"); gi:ExecuteCMD("grass.DiscardDataOnLoad","1")
+                    gi:ExecuteCMD("grass.heightScale","0")
+                    gi:ExecuteCMD("grass.DensityScale","0")
+                    gi:ExecuteCMD("grass.DiscardDataOnLoad","1")
                 end
-                if cfg.BlackSkyEnabled then gi:ExecuteCMD("r.CylinderMaxDrawHeight","9999") end
+                if cfg.BlackSkyEnabled then
+                    gi:ExecuteCMD("r.CylinderMaxDrawHeight","9999")
+                end
             end
         end)
     end)
 
-    -- Magic bullet timer (3.0s, heavy operation, cache prevents re-apply)
+    -- Magic bullet
     self:AddGameTimer(3.0, true, function()
         if not slua.isValid(self.Object) then return end
         ApplyMagicBullet()
     end)
 
-    -- Hunt timer (3.0s)
-    if not StartPersistentTimer() then
-        self:AddGameTimer(2.0, false, function()
-            if not StartPersistentTimer() then
-                self:AddGameTimer(2.0, false, StartPersistentTimer)
+    -- Persistent hunt timer
+    local function HuntAndKillAll()
+        pcall(function()
+            local subNames = {
+                "ClientHawkEyePatrolSubsystem","DSHawkEyePatrolSubsystem","ClientReportPlayerSubsystem",
+                "DSReportPlayerSubsystem","ClientGlueHiaSystem","ClientDataStatistcsSubsystem",
+                "ICTLogSubsystem","DSFightTLogSubsystem","DSSecurityTLogSubsystem","AFKReportorSubsystem",
+                "BehaviorScoreSubsystem"
+            }
+            local subMgr = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
+            if subMgr and subMgr.Get then
+                for _, name in ipairs(subNames) do
+                    local sub = subMgr:Get(name)
+                    if sub then
+                        for k, v in pairs(sub) do
+                            if type(v) == "function" and (k:find("Report") or k:find("Send") or k:find("Tick") or k:find("Log")) then
+                                pcall(function() sub[k] = nop end)
+                            end
+                        end
+                    end
+                end
+            end
+            local Higgs = safe_require("GameLua.Mod.BaseMod.Common.Security.HiggsBosonComponent")
+            if Higgs then
+                local methods = {"ControlMHActive","Tick","OnTick","MHActiveLogic","TriggerAvatarCheck","StartAvatarCheck","ReportItemID","ReceiveAnyDamage","OnWeaponHitRecord","ShowSecurityAlert","ServerReportAvatar","ClientReportNetAvatar","SendHisarData","ValidateSecurityData"}
+                for _, m in ipairs(methods) do if Higgs[m] then Higgs[m] = nop end end
+                Higgs.GetNetAvatarItemIDs = retEmpty; Higgs.GetCurWeaponSkinID = retZero
             end
         end)
     end
-end  -- end of StartBrAdvancedSystems function
+    self:AddGameTimer(3.0, true, HuntAndKillAll)
+end
 
--- The script ends here; no extra code or unmatched parentheses.
+-- ==================== CLASS DECLARATION ====================
+local class = require("class")
+local CCharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
+local CBRPlayerCharacterBase = class(CCharacterBase, nil, BRPlayerCharacterBase)
 
-local CBRPlayerCharacterBase = class(CharacterBase, nil, BRPlayerCharacterBase)
-
-return CombineClass.DeclareFeature(CBRPlayerCharacterBase, {
+return require("combine_class").DeclareFeature(CBRPlayerCharacterBase, {
     { SkyTransition = "GameLua.Mod.BaseMod.Gameplay.Feature.SkyControl.PlayerCharacterSkyTransitionFeature" },
     { CarryDeadBoxFeature = "GameLua.Mod.Library.GamePlay.Feature.CarryDeadBoxFeature" },
     { SpecialSuitFeature = "GameLua.Mod.Library.GamePlay.Feature.SpecialSuitFeature" },
@@ -2691,6 +2528,5 @@ return CombineClass.DeclareFeature(CBRPlayerCharacterBase, {
     { FinalKillEffect = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.PlayerCharacterFinalKillEffectFeature" },
     { CampFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.Camp.PlayerCharacterCampFeature" },
     { BuildSkateFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.PlayerCharacterBuildVehicleFeature" },
-    { CommonBornlandTransformFeature = "GameLua.Mod.BaseMod.Gameplay.Feature.HeroPropFeature.CommonBornlandTransformFeature" },
-    { ParachuteFormation = "GameLua.Mod.BaseMod.GamePlay.Feature.ParachuteFormationFeature" }
+    { CommonBornlandTransformFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.HeroPropFeature.CommonBornlandTransformFeature" }
 }, "BRPlayerCharacterBase")
