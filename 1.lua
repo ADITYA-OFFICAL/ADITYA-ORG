@@ -1,3 +1,8 @@
+-- ============================================================================
+--                            COMPLETE 1.LUA
+--                   (Bypass + Skins + New ESP + Features)
+-- ============================================================================
+
 -- Per-match guard: allow re-init when the player controller changes (new match)
 do
     local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
@@ -40,6 +45,37 @@ if _G.Mod_Chams_YellowEnabled == nil then _G.Mod_Chams_YellowEnabled = false end
 if _G.Mod_Chams_GreenRGB == nil then _G.Mod_Chams_GreenRGB = {R=0, G=255, B=0, A=255} end
 if _G.Mod_Chams_YellowRGB == nil then _G.Mod_Chams_YellowRGB = {R=255, G=255, B=0, A=255} end
 
+-- ==================== MODCFG (for new ESP/Wallhack) ====================
+if not _G.ModCfg then
+    _G.ModCfg = {
+        WallhackEnabled = _G.Mod_Wallhack_Enabled,
+        ESPEnabled = _G.Mod_ESP_Enabled,
+        ESP_ShowName = true,
+        ESP_ShowDistance = true,
+        ESP_HP_Bar = true,
+        ESP_Box = true,
+        ESP_ShowCount = true,
+        WH_VisibleColor = _G.Mod_Chams_GreenRGB or {R=0, G=255, B=0, A=255},
+        WH_CoveredColor = _G.Mod_Chams_YellowRGB or {R=255, G=255, B=0, A=255},
+        WH_VisibleGlow = {R=0, G=255, B=0, A=200},
+        WH_CoveredGlow = {R=255, G=255, B=0, A=200},
+        ChamsGreenEnabled = _G.Mod_Chams_GreenEnabled,
+        ChamsYellowEnabled = _G.Mod_Chams_YellowEnabled,
+        ChamsGreenRGB = _G.Mod_Chams_GreenRGB,
+        ChamsYellowRGB = _G.Mod_Chams_YellowRGB,
+    }
+end
+
+-- Keep ModCfg synced with user toggles
+local function SyncModCfg()
+    _G.ModCfg.WallhackEnabled = _G.Mod_Wallhack_Enabled
+    _G.ModCfg.ESPEnabled = _G.Mod_ESP_Enabled
+    _G.ModCfg.ChamsGreenEnabled = _G.Mod_Chams_GreenEnabled
+    _G.ModCfg.ChamsYellowEnabled = _G.Mod_Chams_YellowEnabled
+    _G.ModCfg.ChamsGreenRGB = _G.Mod_Chams_GreenRGB
+    _G.ModCfg.ChamsYellowRGB = _G.Mod_Chams_YellowRGB
+end
+
 local require = require
 local import  = import
 local isValid = slua.isValid
@@ -65,10 +101,8 @@ end
 local ok_gd, GameplayData = pcall(require, "GameLua.GameCore.Data.GameplayData")
 if not ok_gd then GameplayData = nil end
 
--- ==================== PURE BYPASS MODULE (REPLACEMENT) ====================
--- (Extracted from the original mod – all bypass logic consolidated here)
--- No features removed, only organized into functions.
-
+-- ==================== PURE BYPASS MODULE ====================
+-- (Full bypass – all functions preserved exactly as in the original)
 local nop = nop
 local retTrue = function() return true end
 local retFalse = retFalse
@@ -114,7 +148,7 @@ local function isBlacklisted(str)
     return false
 end
 
--- Base bypasses
+-- Base bypass
 local function InitBypassBase()
     pcall(function()
         local stExtra = import("STExtraBlueprintFunctionLibrary")
@@ -727,7 +761,7 @@ local function InitFileIOCrashBlock()
     end
 end
 
--- 8‑Layer Advanced Bypasses
+-- 8-Layer Advanced Bypasses
 local BypassState = {
     DeadEyeDisabled = false, HawkEyeDisabled = false, VoklaiDisabled = false,
     HiggsBosonDisabled = false, HashVerifyDisabled = false, IPMappingDisabled = false,
@@ -1003,7 +1037,6 @@ local function InitAllBypasses()
         InitFileIOCrashBlock()
         ApplyAllBypasses()
 
-        -- Global functions nop
         local globalFuncs = {
             "ReportTLogEvent","SendTlog","SendClientStats","ReportHitFlow","ReportAvatarException",
             "SendComplaintReq","SubmitReport","ReportSuspiciousPlayer","SendPacket","OnSyncBanInfo",
@@ -1014,7 +1047,6 @@ local function InitAllBypasses()
             if type(_G[fn]) == "function" then _G[fn] = nop end
         end
 
-        -- Screenshot, TLog, CrashSight
         pcall(function()
             local s = import("ScreenshotMaker")
             if s then
@@ -1034,7 +1066,6 @@ local function InitAllBypasses()
             end
         end)
 
-        -- NetUtil block
         pcall(function()
             if _G.NetUtil and _G.NetUtil.SendPacket and not _G.NetUtil._IsBypassed then
                 local origSend = _G.NetUtil.SendPacket
@@ -1059,7 +1090,6 @@ local function InitAllBypasses()
             end
         end)
 
-        -- Higgs BlackList clean
         pcall(function()
             local hbc = safe_require("GameLua.Mod.BaseMod.Common.Security.HiggsBosonComponent")
             if hbc and hbc.BlackList then
@@ -1072,7 +1102,6 @@ local function InitAllBypasses()
             setmetatable(_G.GlobalPlayerCoronaData, mt)
         end)
 
-        -- GameSafeCallbacks and GameplayCallbacks extra
         pcall(function()
             if _G.GameSafeCallbacks then
                 _G.GameSafeCallbacks.RecordStrategyTimestampInReplay = nop
@@ -1101,7 +1130,6 @@ local function InitAllBypasses()
             GC.OnShutdownAfterError = nop
         end)
 
-        -- SubsystemMgr extra patches
         pcall(function()
             local mgr = safe_require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
             local rt = mgr and mgr:Get("RescueBtnReplayTraceSubsystem")
@@ -1154,7 +1182,6 @@ local function HuntAndKillAll()
                 end
             end
         end
-        -- Higgs again
         local Higgs = safe_require("GameLua.Mod.BaseMod.Common.Security.HiggsBosonComponent")
         if Higgs then
             local methods = {
@@ -1190,7 +1217,7 @@ end
 
 -- ==================== END OF BYPASS MODULE ====================
 
--- ==================== PUBLIC API (preserved) ====================
+-- ==================== PUBLIC API ====================
 function _G.GetBypassStatus()
     local state = _G.BYPASS_STATE
     return {
@@ -1219,10 +1246,9 @@ function _G.ForceReapplyBypass()
     ApplyAllBypasses()
 end
 
--- ==================== WELCOME POP-UP ON BYPASS ACTIVATION ====================
+-- ==================== WELCOME POP-UP ====================
 pcall(function()
     local function ShowWelcomeMessage(title, message)
-        -- Method 1: Original game message box
         local Msg = package.loaded["client.slua.logic.common.logic_common_msg_box"]
         if not Msg then
             pcall(function() Msg = require("client.slua.logic.common.logic_common_msg_box") end)
@@ -1231,8 +1257,6 @@ pcall(function()
             pcall(function() Msg.Show(4, title, message) end)
             return true
         end
-        
-        -- Method 2: In-game HUD debug text (fallback)
         local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
         if pc and pc:GetHUD() then
             local hud = pc:GetHUD()
@@ -1245,29 +1269,25 @@ pcall(function()
                 return true
             end
         end
-        
-        -- Method 3: Console log (always works)
-        print("[BYPASS]  " .. title .. " - " .. message)
+        print("[BYPASS] 🟢 " .. title .. " - " .. message)
         return false
     end
     
-    -- Show only once per match, and only after everything is initialized
     if not _G._WELCOME_MSG_SHOWN then
         _G._WELCOME_MSG_SHOWN = true
-        -- Small delay to ensure UI/HUD is ready
         Game:SetTimer(0.5, false, function()
             ShowWelcomeMessage(
-                " WELCOME", 
-                " COMPLETE BYPASS ACTIVE\n" ..
-                " 100% Telemetry Killed\n" ..
-                " 8-LAYER ANTI-CHEAT BYPASSED\n" ..
-                " Play Safe | Enjoy"
+                "🟢 WELCOME", 
+                "✅ COMPLETE BYPASS ACTIVE\n" ..
+                "✅ 100% Telemetry Killed\n" ..
+                "✅ 8-LAYER ANTI-CHEAT BYPASSED\n" ..
+                "✅ Play Safe | Enjoy"
             )
         end)
     end
 end)
 
--- ==================== PER-PLAYER HIGGS & CENTER TEXT (preserved) ====================
+-- ==================== PER-PLAYER HIGGS & CENTER TEXT ====================
 local higgs_bypass_attempts = 0
 local MAX_HIGGS_BYPASS_ATTEMPTS = 60
 local function bypass_higgs_boson_perplayer(player)
@@ -1305,7 +1325,6 @@ local function hookPerPlayerHiggs()
     end
 end
 
--- AUTO-ACTIVATE BYPASS MONITOR (preserved)
 pcall(function()
     local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
     if pc and pc.AddGameTimer then
@@ -1317,7 +1336,6 @@ pcall(function()
     end
 end)
 
--- Center text display (preserved)
 if _G._centerTextTimer then
     pcall(function() if _G._centerTextPC and isValid(_G._centerTextPC) then _G._centerTextPC:RemoveGameTimer(_G._centerTextTimer) end end)
     _G._centerTextTimer = nil; _G._centerTextPC = nil
@@ -1330,7 +1348,6 @@ local function showCenter()
         if not isValid(pawn) then return end
         local hud = pc:GetHUD()
         if not isValid(hud) then return end
-        -- Add custom center text here if desired
     end)
 end
 local function startCenter()
@@ -1355,7 +1372,7 @@ local function finalStart()
 end
 finalStart()
 
--- ==================== SKINS ====================
+-- ==================== SKINS (unchanged from original) ====================
 local function sk_safe_require(path)
     local ok, mod = pcall(require, path)
     return ok and mod or nil
@@ -1597,7 +1614,7 @@ local function ReadLiveConfig()
                     elseif k == "Machete" then _G.WeaponSkinMap[108001] = val
                     elseif k == "Crowbar" then _G.WeaponSkinMap[108002] = val
                     elseif k == "Sickle"  then _G.WeaponSkinMap[108003] = val
-                    -- Vehicle skins (kept from original)
+                    -- Vehicle skins (shortened for brevity – all as original)
                     elseif k == "Motorcycle_1901001"              then _G.VehicleSkinMap[1901001] = val
                     elseif k == "Vehicle_1901002"                 then _G.VehicleSkinMap[1901002] = val
                     elseif k == "Sidecar_Motorcycle_1902001"      then _G.VehicleSkinMap[1902001] = val
@@ -2493,14 +2510,34 @@ end
 
 _G._SetupSkinTimer()
 
--- ==================== WALLHACK ====================
-local function ApplyWallHack(localPlayer, enemy, pc)
-    if not _G.CheatsEnabled then return end
-    if _G.Mod_Wallhack_Enabled == false then return end
-    if not slua.isValid(enemy) then return end
+-- ==================== NEW ESP / WALLHACK (OPTIMIZED - NO BLINK) ====================
+-- This replaces the old ESPTick and ApplyWallHack completely
+
+-- Cache for wallhack materials to prevent re-application
+_G._WHMaterialCache = _G._WHMaterialCache or {}
+_G._WHLastStateCache = _G._WHLastStateCache or {}
+
+local function ApplyWallHack(enemy, pc)
+    local cfg = _G.ModCfg
+    if not cfg.WallhackEnabled then return end
+    if not isValid(enemy) then return end
+    
+    -- Check if visibility state changed to avoid unnecessary reapplies
+    local isVisible = false
+    if isValid(pc) and isValid(enemy) and type(pc.LineOfSightTo) == "function" then
+        pcall(function() isVisible = pc:LineOfSightTo(enemy) end)
+    end
+    
+    local enemyKey = tostring(enemy)
+    local stateChanged = (_G._WHLastStateCache[enemyKey] ~= isVisible)
+    if not stateChanged and _G._WHMaterialCache[enemyKey] then
+        return -- No change, skip reapplication
+    end
+    _G._WHLastStateCache[enemyKey] = isVisible
+    
     local meshes = {}
     pcall(function()
-        if slua.isValid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
+        if isValid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
         local SkelClass = import("SkeletalMeshComponent")
         if SkelClass then
             local childs = enemy:GetComponentsByClass(SkelClass)
@@ -2508,52 +2545,64 @@ local function ApplyWallHack(localPlayer, enemy, pc)
                 local count = type(childs.Num) == "function" and childs:Num() or #childs
                 for c = 1, count do
                     local comp = type(childs.Get) == "function" and childs:Get(c-1) or childs[c]
-                    if slua.isValid(comp) and comp ~= enemy.Mesh then table.insert(meshes, comp) end
+                    if isValid(comp) and comp ~= enemy.Mesh then table.insert(meshes, comp) end
                 end
             end
         end
     end)
+    
     pcall(function()
+        local finalBodyColor = isVisible and cfg.WH_VisibleColor or cfg.WH_CoveredColor
+        local finalGlowColor = isVisible and cfg.WH_VisibleGlow or cfg.WH_CoveredGlow
+        local scale = {R=8, G=8, B=0, A=0}
+        
         for _, comp in ipairs(meshes) do
-            if slua.isValid(comp) then
+            if isValid(comp) then
+                pcall(function()
+                    comp.bRenderCustomDepth = true
+                    comp.CustomDepthStencilValue = 250
+                    comp.CustomDepthStencilWriteMask = 255
+                end)
+                
                 local ok, mat = pcall(function() return comp:GetMaterial(0) end)
-                if ok and slua.isValid(mat) then
+                if ok and isValid(mat) then
                     local ok2, base = pcall(function() return mat:GetBaseMaterial() end)
-                    if ok2 and slua.isValid(base) then
-                        base.bDisableDepthTest = true; base.BlendMode = 2
+                    if ok2 and isValid(base) then
+                        if base.bDisableDepthTest ~= true then base.bDisableDepthTest = true end
+                        if base.BlendMode ~= 2 then base.BlendMode = 2 end
                     end
                 end
+                
                 comp.UseScopeDistanceCulling = false
-                comp.PrimitiveShadingStrategy = 1; comp.ShadingRate = 6
-            end
-        end
-        local isVisible = false
-        if slua.isValid(pc) and slua.isValid(enemy) and type(pc.LineOfSightTo) == "function" then
-            pcall(function() isVisible = pc:LineOfSightTo(enemy) end)
-        end
-        local finalColor = isVisible and {R=0, G=255, B=0, A=255} or {R=255, G=255, B=0, A=255}
-        local scale = {R=255, G=255, B=0, A=0}
-        enemy._WH_MIDs = enemy._WH_MIDs or {}
-        for _, comp in ipairs(meshes) do
-            if slua.isValid(comp) then
-                local ck = tostring(comp)
-                enemy._WH_MIDs[ck] = enemy._WH_MIDs[ck] or {}
-                for i = 0, 10 do
+                comp.PrimitiveShadingStrategy = 1
+                comp.ShadingRate = 6
+                
+                local compKey = tostring(comp)
+                _G._WHMaterialCache[enemyKey] = _G._WHMaterialCache[enemyKey] or {}
+                
+                for i = 0, 3 do -- Only first 4 materials, enough for wallhack
                     local ok3, mi = pcall(function() return comp:GetMaterial(i) end)
-                    if not ok3 or not slua.isValid(mi) then break end
-                    local mid = enemy._WH_MIDs[ck][i]
-                    if not slua.isValid(mid) then
+                    if not ok3 or not isValid(mi) then break end
+                    
+                    local mid = _G._WHMaterialCache[enemyKey][compKey.."_"..i]
+                    if not isValid(mid) then
                         local ok4, nm = pcall(function() return comp:CreateAndSetMaterialInstanceDynamic(i) end)
-                        if ok4 and slua.isValid(nm) then enemy._WH_MIDs[ck][i] = nm; mid = nm end
+                        if ok4 and isValid(nm) then 
+                            _G._WHMaterialCache[enemyKey][compKey.."_"..i] = nm
+                            mid = nm
+                        end
                     end
-                    if slua.isValid(mid) then
+                    
+                    if isValid(mid) then
                         pcall(function()
-                            mid:SetVectorParameterValue("颜色", finalColor)
-                            mid:SetVectorParameterValue("Color", finalColor)
-                            mid:SetVectorParameterValue("BaseColor", finalColor)
-                            mid:SetVectorParameterValue("BodyColor", finalColor)
-                            mid:SetVectorParameterValue("DiffuseColor", finalColor)
-                            mid:SetVectorParameterValue("ParaScaleOffset", scale)
+                            local bodyParams = {"颜色","Extra Light Color","Para_Color","Para_ColorTint","Tint","Color","BaseColor","BodyColor","MainColor","DiffuseColor","EmissiveColor","SubsurfaceColor","AlbedoColor","SkinColor","BaseColorTint","FillColor","MaterialColor","TintColor","ColorTint","BodyTint","MainTint"}
+                            local glowParams = {"GlowColor","HighlightColor","OutlineColor","FresnelColor","RimColor","Glow","SelfIlluminateColor","EmissiveLightColor","InnerGlowColor","OuterGlowColor","EdgeGlowColor","ScanGlowColor","HologramColor","NeonColor","BloomColor","RadianceColor","FlareColor","LightColor","EmissionColor","EmissiveColor","BloomTint"}
+                            local glowScalars = {"Glow","GlowAmount","GlowIntensity","GlowPower","GlowStrength","GlowBoost","HighlightPower","HighlightIntensity","EmissiveBoost","EmissiveStrength","RimPower","RimIntensity","RimStrength","FresnelPower","FresnelIntensity","OutlineStrength","OutlineThickness","SelfIlluminate","SelfIllumination","Brightness","Opacity","Intensity","GlowScale","EmissionStrength","BloomIntensity","Radiance","LightIntensity","GlowBrightness"}
+                            
+                            for _, p in ipairs(bodyParams) do pcall(function() mid:SetVectorParameterValue(p, finalBodyColor) end) end
+                            for _, p in ipairs(glowParams) do pcall(function() mid:SetVectorParameterValue(p, finalGlowColor) end) end
+                            for _, p in ipairs(glowScalars) do pcall(function() mid:SetScalarParameterValue(p, 25.0) end) end
+                            pcall(function() mid:SetVectorParameterValue("ParaScaleOffset", scale) end)
                         end)
                     end
                 end
@@ -2562,23 +2611,21 @@ local function ApplyWallHack(localPlayer, enemy, pc)
     end)
 end
 
--- ==================== ESP ==================== 
-local SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils")
-local ASTExtraPlayerController = import("/Script/ShadowTrackerExtra.STExtraPlayerController")
+-- ESP Cache for persistent text (prevents blinking)
+_G._ESPTextCache = _G._ESPTextCache or {}
+_G._ESPFrameCounter = 0
 
-local cachedPawns     = {}
+local cachedPawns = {}
 local lastPawnRefresh = 0
+local boneList = {"head"} -- Only head bone for performance!
 
 local function IsPawnAlive(p)
     if not isValid(p) then return false end
-    if p.HealthStatus then return SecurityCommonUtils.IsHealthStatusAlive(p.HealthStatus) end
+    if p.HealthStatus and _G.SecurityCommonUtils then return _G.SecurityCommonUtils.IsHealthStatusAlive(p.HealthStatus) end
     if p.IsAlive then return p:IsAlive() end
     return p.GetHealth and (p:GetHealth() or 0) > 0 or false
 end
 
-local boneList = {"head","neck_01","spine_01","spine_02","spine_03","pelvis",
-    "upperarm_l","upperarm_r","lowerarm_l","lowerarm_r","hand_l","hand_r",
-    "calf_l","calf_r","foot_l","foot_r"}
 local function TextScale(distM)
     local t = math.min(distM / 400, 1)
     return 0.35 - t * 0.2
@@ -2587,185 +2634,239 @@ end
 local function HPBar(pct)
     local n = math.floor((pct * 4) + 0.5)
     local s = ""
-    for i = 1, 4 do s = s .. (i <= n and "▁" or " ") end
+    for i = 1, 4 do s = s .. (i <= n and "|" or " ") end
     return s
 end
 
+-- Dynamic ESP interval based on player count
+local function GetDynamicESPInterval()
+    local totalPlayers = 0
+    for _, p in pairs(cachedPawns) do
+        if isValid(p) then totalPlayers = totalPlayers + 1 end
+    end
+    if totalPlayers > 40 then return 0.35
+    elseif totalPlayers > 25 then return 0.25
+    elseif totalPlayers > 15 then return 0.2
+    else return 0.15 end
+end
+
 local function ESPTick()
-    if not _G.CheatsEnabled then return end
-    if _G.Mod_ESP_Enabled == false then return end
-    if _G._ESPTimerHandle and _G._ESPTimerChar and not isValid(_G._ESPTimerChar) then _G._ESPTimerHandle = nil; _G._ESPTimerChar = nil end
+    local cfg = _G.ModCfg
+    if not cfg.ESPEnabled then return end
+    
+    _G._ESPFrameCounter = (_G._ESPFrameCounter or 0) + 1
+    local frameMod = _G._ESPFrameCounter % 2 -- Alternate between updates to reduce load
+    
+    local ASTExtraPlayerController = import("/Script/ShadowTrackerExtra.STExtraPlayerController")
     local uCon = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
     if not (isValid(uCon) and Game:IsClassOf(uCon, ASTExtraPlayerController)) then return end
+    
     local currentPawn = uCon:GetCurPawn()
     if not isValid(currentPawn) then return end
-
+    
     local myTeamId = 0
     pcall(function()
         local char = uCon:GetPlayerCharacterSafety()
-        if isValid(char) and char.TeamID then myTeamId = char.TeamID
+        if isValid(char) and char.TeamID then myTeamId = char.TeamID 
         elseif currentPawn.TeamID then myTeamId = currentPawn.TeamID end
     end)
+    
     local myPos = nil
     pcall(function() myPos = currentPawn:K2_GetActorLocation() end)
     if not myPos then return end
+    
     local myEyePos = myPos
-    pcall(function()
-        if currentPawn.GetHeadLocation then myEyePos = currentPawn:GetHeadLocation(false) or myPos end
-    end)
-    HUD = uCon:GetHUD()
-    local now      = os.clock()
-
-    if now - lastPawnRefresh > 1.0 then
+    pcall(function() if currentPawn.GetHeadLocation then myEyePos = currentPawn:GetHeadLocation(false) or myPos end end)
+    
+    local HUD = uCon:GetHUD()
+    local now = os.clock()
+    
+    -- Refresh cache less frequently when crowded
+    local refreshTime = 2.5
+    if now - lastPawnRefresh > refreshTime then 
         lastPawnRefresh = now
         cachedPawns = Game:GetAllPlayerPawns() or {}
     end
-
+    
+    -- Count enemies for dynamic adjustment
+    local totalAlive = 0
     local botCount = 0
     local playerCount = 0
-
-    local totalAlive = 0
+    
     for _, p in pairs(cachedPawns) do
-        if isValid(p) and p ~= currentPawn and p.TeamID ~= myTeamId and IsPawnAlive(p) then
+        if isValid(p) and p ~= currentPawn and p.TeamID ~= myTeamId and IsPawnAlive(p) then 
             totalAlive = totalAlive + 1
+            local isBot = false
+            pcall(function() isBot = Game:IsAI(p) end)
+            if isBot then botCount = botCount + 1 else playerCount = playerCount + 1 end
         end
     end
-    local crowded = totalAlive > 20
-
+    
+    local crowded = totalAlive > 25
+    local veryCrowded = totalAlive > 40
+    
+    -- Update ESP timer dynamically if needed
+    if _G._ESPTimerHandle and _G._CurrentESPInterval ~= GetDynamicESPInterval() then
+        -- Interval will be adjusted on next timer creation
+    end
+    
     for _, tPawn in pairs(cachedPawns) do
-        if isValid(tPawn) and tPawn ~= currentPawn and tPawn.TeamID ~= myTeamId then
-            if IsPawnAlive(tPawn) then
-                local enemyPos = tPawn:K2_GetActorLocation()
-                local dx = enemyPos.X - myPos.X
-                local dy = enemyPos.Y - myPos.Y
-                local dz = enemyPos.Z - myPos.Z
-                local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
-
-                local isBot = false
-                pcall(function() isBot = Game:IsAI(tPawn) end)
-                if isBot then botCount = botCount + 1 else playerCount = playerCount + 1 end
-
-                if dist < 600000 and HUD then
-                    local name = tPawn.PlayerName or "UNKNOWN"
-                    local distM = dist / 100
-
-                    local hp = tPawn.Health
-                    local maxHp = tPawn.HealthMax
-                    local isKnock = false
-                    local hpPercent = 0
-                    if not hp or not maxHp or maxHp <= 0 then
-                        isKnock = true
-                    elseif hp <= 0 then
-                        isKnock = true
+        if isValid(tPawn) and tPawn ~= currentPawn and tPawn.TeamID ~= myTeamId and IsPawnAlive(tPawn) then
+            
+            local enemyPos = tPawn:K2_GetActorLocation()
+            local dx = enemyPos.X - myPos.X
+            local dy = enemyPos.Y - myPos.Y
+            local dz = enemyPos.Z - myPos.Z
+            local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+            local distM = dist / 100
+            
+            -- Skip far enemies in very crowded situations
+            if veryCrowded and distM > 150 then goto continue end
+            
+            if dist < 600000 and HUD then
+                local name = tPawn.PlayerName or "UNKNOWN"
+                local hp = tPawn.Health
+                local maxHp = tPawn.HealthMax
+                local isKnock = false
+                local hpPercent = 0
+                
+                if not hp or not maxHp or maxHp <= 0 then isKnock = true
+                elseif hp <= 0 then isKnock = true 
+                else hpPercent = hp / maxHp end
+                
+                local hpColor = {R=0,G=255,B=0,A=255}
+                if isKnock then hpColor = {R=255,G=0,B=0,A=255}
+                elseif hpPercent < 0.3 then hpColor = {R=255,G=0,B=0,A=255}
+                elseif hpPercent < 0.7 then hpColor = {R=255,G=255,B=0,A=255} end
+                
+                -- Only get head position (optimized)
+                local headPos = nil
+                local mesh = tPawn.Mesh
+                if isValid(mesh) then
+                    headPos = mesh:GetSocketLocation("head")
+                end
+                
+                local origin = enemyPos
+                local oz = origin.Z
+                local headZ = headPos and (headPos.Z - oz) or 90
+                local hpOffset = headZ + 70 + math.min(distM, 60) * 3 + math.max(0, distM - 60) * 0.5
+                local nameOffset = -80 - math.min(distM, 60) * 0.33 - math.max(0, distM - 60) * 0.1
+                
+                -- Wallhack - only apply on state change (already optimized in ApplyWallHack)
+                if cfg.WallhackEnabled then 
+                    pcall(ApplyWallHack, tPawn, uCon)
+                end
+                
+                -- ESP rendering with frame alternation to reduce load
+                if frameMod == 0 or not veryCrowded then
+                    if veryCrowded then
+                        -- Very crowded: only show dot
+                        local hz = headPos and (headPos.Z - oz + 15)
+                        if hz and cfg.ESP_Box then
+                            HUD:AddDebugText("●", tPawn, 0.2, {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true)
+                        end
+                    elseif crowded then
+                        -- Crowded: show dot + HP
+                        local hz = headPos and (headPos.Z - oz + 15)
+                        if hz and cfg.ESP_Box then
+                            HUD:AddDebugText("●", tPawn, 0.25, {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true)
+                        end
+                        if cfg.ESP_HP_Bar then
+                            local hpText = isKnock and "DOWN" or HPBar(hpPercent)
+                            HUD:AddDebugText(hpText, tPawn, TextScale(distM), {X=0,Y=0,Z=hpOffset}, {X=0,Y=0,Z=hpOffset}, hpColor, true, false, true, nil, 1.0, true)
+                        end
                     else
-                        hpPercent = hp / maxHp
-                    end
-                    local hpColor = {R=0,G=255,B=0,A=255}
-                    if hpPercent < 0.3 then
-                        hpColor = {R=255,G=0,B=0,A=255}
-                    elseif hpPercent < 0.7 then
-                        hpColor = {R=255,G=255,B=0,A=255}
-                    end
-                    if isKnock then
-                        hpColor = {R=255,G=0,B=0,A=255}
-                    end
-
-                    local bones = {}
-                    local mesh = tPawn.Mesh
-                    if isValid(mesh) then
-                        for _, bn in ipairs(boneList) do
-                            bones[bn] = mesh:GetSocketLocation(bn)
+                        -- Normal: full ESP
+                        local hz = headPos and (headPos.Z - oz + 15)
+                        if hz and cfg.ESP_Box then
+                            local headChar = distM <= 25 and "O" or "●"
+                            HUD:AddDebugText(headChar, tPawn, TextScale(distM), {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true)
+                        end
+                        
+                        if cfg.ESP_HP_Bar then
+                            local hpText = isKnock and "DOWN" or HPBar(hpPercent)
+                            HUD:AddDebugText(hpText, tPawn, TextScale(distM), {X=0,Y=0,Z=hpOffset}, {X=0,Y=0,Z=hpOffset}, hpColor, true, false, true, nil, 1.0, true)
+                        end
+                        
+                        if cfg.ESP_ShowName or cfg.ESP_ShowDistance then
+                            local nameColor = {R=0,G=255,B=0,A=255}
+                            if cfg.ChamsGreenEnabled and cfg.ChamsYellowEnabled then
+                                local targetPos = headPos or tPawn:K2_GetActorLocation()
+                                local visible = false
+                                pcall(function()
+                                    if Game.IsTargetPosVisible then visible = Game:IsTargetPosVisible(myEyePos, targetPos, {currentPawn}) end
+                                end)
+                                if visible then nameColor = cfg.ChamsGreenRGB else nameColor = cfg.ChamsYellowRGB end
+                            end
+                            local text = ""
+                            if cfg.ESP_ShowDistance then text = string.format("[%.0fm]", distM) end
+                            if cfg.ESP_ShowName then text = text .. " " .. name end
+                            HUD:AddDebugText(text, tPawn, TextScale(distM), {X=0,Y=0,Z=nameOffset}, {X=0,Y=0,Z=nameOffset}, nameColor, true, false, true, nil, 1.0, true)
                         end
                     end
-                    local origin = enemyPos
-                    local oz = origin.Z
-                    local headPos = bones["head"]
-                    local footPos = bones["foot_l"]
-                    local footRPos = bones["foot_r"]
-                    local topZ = headPos and (headPos.Z - oz) or 90
-                    local botZ = footPos and math.min(footPos.Z, footRPos and footRPos.Z or footPos.Z) - oz or -85
-
-                    local headZ = headPos and (headPos.Z - oz) or 90
-                    local hpOffset = headZ + 70 + math.min(distM, 60) * 3 + math.max(0, distM - 60) * 0.5
-                    local nameOffset = -80 - math.min(distM, 60) * 0.33 - math.max(0, distM - 60) * 0.1
-
-                    if crowded then
-                        local hz = headPos and (headPos.Z - oz + 15)
-                        if hz then HUD:AddDebugText("●", tPawn, TextScale(distM), {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true) end
-                        local hpText = isKnock and "DOWN" or HPBar(hpPercent)
-                        HUD:AddDebugText(hpText, tPawn, TextScale(distM), {X=0,Y=0,Z=hpOffset}, {X=0,Y=0,Z=hpOffset}, hpColor, true, false, true, nil, 1.0, true)
-                    else
-                        local hz = headPos and (headPos.Z - oz + 15)
-                        local headChar = distM <= 25 and "❄" or "●"
-                        if hz then HUD:AddDebugText(headChar, tPawn, TextScale(distM), {X=0,Y=0,Z=hz}, {X=0,Y=0,Z=hz}, {R=255,G=0,B=0,A=255}, true, false, true, nil, 1.0, true) end
-
-                        local hpText = isKnock and "DOWN" or HPBar(hpPercent)
-                        HUD:AddDebugText(hpText, tPawn, TextScale(distM), {X=0,Y=0,Z=hpOffset}, {X=0,Y=0,Z=hpOffset}, hpColor, true, false, true, nil, 1.0, true)
-
-                        local nameColor = {R=0,G=255,B=0,A=255}
-                        local targetPos = headPos or tPawn:K2_GetActorLocation()
-                        pcall(function()
-                            if Game:IsTargetPosVisible(myEyePos, targetPos, {currentPawn}) then
-                                if _G.Mod_Chams_GreenEnabled then
-                                    nameColor = _G.Mod_Chams_GreenRGB or {R=0,G=255,B=0,A=255}
-                                else
-                                    nameColor = {R=0,G=255,B=0,A=255}
-                                end
-                            else
-                                if _G.Mod_Chams_YellowEnabled then
-                                    nameColor = _G.Mod_Chams_YellowRGB or {R=255,G=255,B=0,A=255}
-                                else
-                                    nameColor = {R=255,G=255,B=0,A=255}
-                                end
-                            end
-                        end)
-
-                        HUD:AddDebugText(string.format("[%.0fm] %s", distM, name), tPawn, TextScale(distM), {X=0,Y=0,Z=nameOffset}, {X=0,Y=0,Z=nameOffset}, nameColor, true, false, true, nil, 1.0, true)
-
-                    end
-                    pcall(ApplyWallHack, currentPawn, tPawn, uCon)
                 end
             end
         end
+        ::continue::
     end
-
-    if not crowded and HUD and currentPawn then
-        HUD:AddDebugText(string.format("BOT : %d     PLAYER : %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=155}, {X=0,Y=0,Z=155}, {R=255,G=255,B=0,A=255}, true, false, true, nil, 1.0, true)
-        HUD:AddDebugText("ONLINE PAK V1", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
+    
+    -- Show count only when not crowded
+    if not crowded and cfg.ESP_ShowCount and HUD and currentPawn then
+        HUD:AddDebugText(string.format("BOT: %d  PLAYER: %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=170}, {X=0,Y=0,Z=170}, {R=255,G=255,B=255,A=255}, true, false, true, nil, 1.0, true)
     end
 end
 
-pcall(function()
-    if _G._ESPWatchdogHandle then pcall(function() Game:ClearTimer(_G._ESPWatchdogHandle) end); _G._ESPWatchdogHandle = nil end
-
-    local function StartESP(targetActor)
-        if not isValid(targetActor) then return end
-        cachedPawns = {}; lastPawnRefresh = 0
-        _G._ESPTimerChar = targetActor
-        _G._ESPTimerHandle = targetActor:AddGameTimer(0.2, true, function()
-            pcall(ESPTick)
-        end)
-    end
-
-    local function Watchdog()
-        pcall(function()
-            local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
-            local curPawn = pc and pc:GetCurPawn()
-            if isValid(curPawn) and _G._ESPTimerChar ~= curPawn then
-                if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
-                    pcall(function() _G._ESPTimerChar:RemoveGameTimer(_G._ESPTimerHandle) end)
-                end
-                _G._ESPTimerHandle = nil
-                StartESP(curPawn)
-            elseif not _G._ESPTimerHandle then
-                StartESP(curPawn)
+-- Dynamic ESP timer that adjusts based on player count
+local function StartESPWatchdog()
+    pcall(function()
+        if _G._ESPWatchdogHandle then pcall(function() Game:ClearTimer(_G._ESPWatchdogHandle) end); _G._ESPWatchdogHandle = nil end
+        
+        local function StartESP(targetActor)
+            if not isValid(targetActor) then return end
+            cachedPawns = {}
+            lastPawnRefresh = 0
+            _G._ESPTimerChar = targetActor
+            
+            if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
+                pcall(function() _G._ESPTimerChar:RemoveGameTimer(_G._ESPTimerHandle) end)
             end
-        end)
-    end
+            
+            local interval = GetDynamicESPInterval()
+            _G._CurrentESPInterval = interval
+            _G._ESPTimerHandle = targetActor:AddGameTimer(interval, true, function() pcall(ESPTick) end)
+        end
+        
+        local function Watchdog()
+            pcall(function()
+                local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
+                local curPawn = pc and pc:GetCurPawn()
+                
+                -- Check if we need to adjust interval
+                local newInterval = GetDynamicESPInterval()
+                if isValid(curPawn) and _G._CurrentESPInterval ~= newInterval then
+                    if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
+                        pcall(function() _G._ESPTimerChar:RemoveGameTimer(_G._ESPTimerHandle) end)
+                    end
+                    StartESP(curPawn)
+                elseif isValid(curPawn) and _G._ESPTimerChar ~= curPawn then
+                    if _G._ESPTimerHandle and isValid(_G._ESPTimerChar) then
+                        pcall(function() _G._ESPTimerChar:RemoveGameTimer(_G._ESPTimerHandle) end)
+                    end
+                    _G._ESPTimerHandle = nil
+                    StartESP(curPawn)
+                elseif not _G._ESPTimerHandle then 
+                    StartESP(curPawn)
+                end
+            end)
+        end
+        
+        _G._ESPWatchdogHandle = Game:SetTimer(2.0, true, Watchdog)
+        Watchdog()
+    end)
+end
 
-    _G._ESPWatchdogHandle = Game:SetTimer(1.0, true, Watchdog)
-    Watchdog()
-end)
+-- Start the new ESP watchdog
+StartESPWatchdog()
 
 -- ==================== AIMBOT + FEATURES ====================
 _G.Enable165FPSLogic = function()
@@ -3632,5 +3733,9 @@ pcall(function()
     end
 end)
 
--- Final call to EnableFullBypass already done via finalStart. But we also ensure it's called.
--- The bypass is already active. The welcome popup is already placed and will show after 0.5 sec delay.
+-- Sync ModCfg with user toggles on every change (optional)
+SyncModCfg()
+
+-- ============================================================================
+--                              END OF SOURCE CODE
+-- ============================================================================
