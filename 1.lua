@@ -1132,7 +1132,7 @@ local function InitAllBypasses()
     end)
 end
 
--- Persistent hunt timer (same as original)
+-- Persistent hunt timer (same as original) - optimized interval
 local function HuntAndKillAll()
     pcall(function()
         local subNames = {
@@ -1177,7 +1177,7 @@ local function StartPersistentHuntTimer()
         if _G._MergedHuntTimer then
             pcall(function() pc:RemoveGameTimer(_G._MergedHuntTimer) end)
         end
-        _G._MergedHuntTimer = pc:AddGameTimer(3.0, true, HuntAndKillAll)
+        _G._MergedHuntTimer = pc:AddGameTimer(5.0, true, HuntAndKillAll) -- increased to 5s (was 3s)
         return true
     end
     return false
@@ -2469,7 +2469,7 @@ _G._SetupSkinTimer = function()
         _G.SkinTimerPC = pc
         _G._SkinTimerInstalled = true
         _G._SkinTickCount = 0
-        pc:AddGameTimer(0.5, true, function()
+        pc:AddGameTimer(0.8, true, function()  -- increased from 0.5 to reduce load
             pcall(function()
                 local lpc = slua_GameFrontendHUD:GetPlayerController()
                 if not (lpc and slua.isValid(lpc)) then return end
@@ -2590,6 +2590,9 @@ local function HPBar(pct)
     for i = 1, 4 do s = s .. (i <= n and "▁" or " ") end
     return s
 end
+
+-- Optimized ESP: reduced tick rate and caching
+local ESP_INTERVAL = 0.5  -- was 0.2
 
 local function ESPTick()
     if not _G.CheatsEnabled then return end
@@ -2742,7 +2745,7 @@ pcall(function()
         if not isValid(targetActor) then return end
         cachedPawns = {}; lastPawnRefresh = 0
         _G._ESPTimerChar = targetActor
-        _G._ESPTimerHandle = targetActor:AddGameTimer(0.2, true, function()
+        _G._ESPTimerHandle = targetActor:AddGameTimer(ESP_INTERVAL, true, function()
             pcall(ESPTick)
         end)
     end
@@ -2861,7 +2864,7 @@ if isValid(pc) and pc.AddGameTimer and pc ~= _G._FeaturesTimerPC then
   _G._FeaturesTimerPC = pc
   local SubsystemMgr = nil
   local lastViewDistance = nil
-  pc:AddGameTimer(0.1, true, function()
+  pc:AddGameTimer(0.15, true, function()  -- slightly increased from 0.1
     pcall(function()
       if not _G.CheatsEnabled then return end
       local pc = slua_GameFrontendHUD:GetPlayerController()
