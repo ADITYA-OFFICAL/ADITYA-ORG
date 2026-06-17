@@ -1239,7 +1239,7 @@ pcall(function()
             if hud and hud.AddDebugText then
                 pcall(function()
                     hud:AddDebugText("🟢 " .. title .. " - " .. message, pc:GetCurPawn(), 1.5, 
-                        {X=0, Y=0, Z=280}, {X=0, Y=0, Z=280}, 
+                        {X=0, Y=0, Z=130}, {X=0, Y=0, Z=130}, 
                         {R=0, G=255, B=0, A=255}, true, false, true, nil, 6.0, true)
                 end)
                 return true
