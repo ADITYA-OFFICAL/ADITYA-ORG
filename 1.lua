@@ -1247,7 +1247,7 @@ pcall(function()
         end
         
         -- Method 3: Console log (always works)
-        print("[BYPASS] 🟢 " .. title .. " - " .. message)
+        print("[BYPASS]  " .. title .. " - " .. message)
         return false
     end
     
@@ -1257,11 +1257,11 @@ pcall(function()
         -- Small delay to ensure UI/HUD is ready
         Game:SetTimer(0.5, false, function()
             ShowWelcomeMessage(
-                "🟢 WELCOME", 
-                "✅ COMPLETE BYPASS ACTIVE\n" ..
-                "✅ 100% Telemetry Killed\n" ..
-                "✅ 8-LAYER ANTI-CHEAT BYPASSED\n" ..
-                "✅ Play Safe | Enjoy"
+                " WELCOME", 
+                " COMPLETE BYPASS ACTIVE\n" ..
+                " 100% Telemetry Killed\n" ..
+                " 8-LAYER ANTI-CHEAT BYPASSED\n" ..
+                " Play Safe | Enjoy"
             )
         end)
     end
