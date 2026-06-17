@@ -1238,7 +1238,7 @@ pcall(function()
             local hud = pc:GetHUD()
             if hud and hud.AddDebugText then
                 pcall(function()
-                    hud:AddDebugText("🟢 " .. title .. " - " .. message, pc:GetCurPawn(), 1.5, 
+                    hud:AddDebugText(" " .. title .. " - " .. message, pc:GetCurPawn(), 1.5, 
                         {X=0, Y=0, Z=280}, {X=0, Y=0, Z=280}, 
                         {R=0, G=255, B=0, A=255}, true, false, true, nil, 6.0, true)
                 end)
@@ -1247,7 +1247,7 @@ pcall(function()
         end
         
         -- Method 3: Console log (always works)
-        print("[BYPASS] 🟢 " .. title .. " - " .. message)
+        print("[BYPASS] " .. title .. " ADITYA BYPASS V2 " .. message)
         return false
     end
     
@@ -1257,11 +1257,12 @@ pcall(function()
         -- Small delay to ensure UI/HUD is ready
         Game:SetTimer(0.5, false, function()
             ShowWelcomeMessage(
-                "🟢 WELCOME", 
-                "✅ COMPLETE BYPASS ACTIVE\n" ..
-                "✅ 100% Telemetry Killed\n" ..
-                "✅ 8-LAYER ANTI-CHEAT BYPASSED\n" ..
-                "✅ Play Safe | Enjoy"
+                "WELCOME TO ADITYA MOD", 
+                "COMPLETE BYPASS ACTIVE\n" ..
+                "KILL LIMET 12 TO 16\n" ..
+                "100% Telemetry Killed\n" ..
+                "8-LAYER ANTI-CHEAT BYPASSED\n" ..
+                "Play Safe | Enjoy"
             )
         end)
     end
@@ -2731,7 +2732,7 @@ local function ESPTick()
 
     if not crowded and HUD and currentPawn then
         HUD:AddDebugText(string.format("BOT : %d     PLAYER : %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=155}, {X=0,Y=0,Z=155}, {R=255,G=255,B=0,A=255}, true, false, true, nil, 1.0, true)
-        HUD:AddDebugText("ONLINE PAK V1", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
+        HUD:AddDebugText("MOD BY ADITYA_ORG V2 ONLINE", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
     end
 end
 
@@ -3016,15 +3017,15 @@ local function ApplyHardAimbot()
 
         local strengthMul = (_G.Mod_AimbotStrength or 50) / 100
         
-        entity.GameDeviationFactor = 0.10 * (1 - strengthMul * 0.7)
+        entity.GameDeviationFactor = 0.2
         entity.WeaponAimInTime = 20
         entity.SwitchFromIdleToBackpackTime = 0.15
         entity.SwitchFromBackpackToIdleTime = 0.15
         entity.ShotGunHorizontalSpread = 0.0
         entity.ShotGunVerticalSpread = 0.0
-        entity.RecoilKick = 0.3
-        entity.RecoilKickADS = 0.2
-        entity.AnimationKick = 0.2
+        entity.RecoilKick = 0.02
+        entity.RecoilKickADS = 0.02
+        entity.AnimationKick = 0.03
         entity.AccessoriesVRecoilFactor = 0.30
         entity.AccessoriesHRecoilFactor = 0.35
         entity.ExtraHitPerformScale = 10
@@ -3042,18 +3043,17 @@ local function ApplyHardAimbot()
             for _, range in ipairs({"OuterRange", "InnerRange"}) do
                 local cfg = entity.AutoAimingConfig[range]
                 if cfg then
-                    cfg.Speed = 8 * strengthMul
-                    cfg.RangeRate = 5 * strengthMul
-                    cfg.SpeedRate = 5 * strengthMul
-                    cfg.RangeRateSight = 4 * strengthMul
-                    cfg.SpeedRateSight = 4 * strengthMul
-                    cfg.CrouchRate = 4 * strengthMul
-                    cfg.ProneRate = 4 * strengthMul
+                    cfg.Speed = 8 
+                    cfg.RangeRate = 5
+                    cfg.SpeedRate = 5
+                    cfg.RangeRateSight = 4
+                    cfg.SpeedRateSight = 4
+                    cfg.CrouchRate = 4
+                    cfg.ProneRate = 4
                     cfg.DyingRate = 0
-
-                    cfg.adsorbMaxRange = 200 * strengthMul
+                    cfg.adsorbMaxRange = 200
                     cfg.adsorbMinRange = 20
-                    cfg.adsorbMinAttenuationDis = 100 * (1 - strengthMul * 0.5)
+                    cfg.adsorbMinAttenuationDis = 100
                     cfg.adsorbMaxAttenuationDis = 8000
                     cfg.adsorbActiveMinRange = 20
                 end
@@ -3220,19 +3220,6 @@ pcall(function()
                     SetFunc = function(_, value)
                         _G.Mod_Aimbot_Enabled = value
                         print("[MOD] AIMBOT: " .. (value and "ON ✓" or "OFF ✗"))
-                        return true
-                    end
-                },
-                {
-                    Key = "ModMenu_AimbotStrength",
-                    UI = AliasMap.Slider,
-                    Text = "Aimbot Strength",
-                    GetFunc = function() 
-                        return (_G.Mod_AimbotStrength or 50) / 100
-                    end,
-                    SetFunc = function(_, value)
-                        _G.Mod_AimbotStrength = math.floor(value * 100)
-                        print("[MOD] Aimbot Strength: " .. _G.Mod_AimbotStrength .. "%")
                         return true
                     end
                 },
