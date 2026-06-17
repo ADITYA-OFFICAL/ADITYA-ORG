@@ -1219,10 +1219,10 @@ function _G.ForceReapplyBypass()
     ApplyAllBypasses()
 end
 
--- ==================== MESSAGE DISPLAY (preserved) ====================
+-- ==================== WELCOME POP-UP ON BYPASS ACTIVATION ====================
 pcall(function()
-    local function ShowSuccessMessage(title, message)
-        -- Method 1: Try the original message box
+    local function ShowWelcomeMessage(title, message)
+        -- Method 1: Original game message box
         local Msg = package.loaded["client.slua.logic.common.logic_common_msg_box"]
         if not Msg then
             pcall(function() Msg = require("client.slua.logic.common.logic_common_msg_box") end)
@@ -1232,38 +1232,38 @@ pcall(function()
             return true
         end
         
-        -- Method 2: Try HUD debug text
+        -- Method 2: In-game HUD debug text (fallback)
         local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
         if pc and pc:GetHUD() then
             local hud = pc:GetHUD()
             if hud and hud.AddDebugText then
                 pcall(function()
-                    hud:AddDebugText(title .. " - " .. message, pc:GetCurPawn(), 1.5, 
-                        {X=0, Y=0, Z=200}, {X=0, Y=0, Z=200}, 
-                        {R=0, G=255, B=0, A=255}, true, false, true, nil, 3.0, true)
+                    hud:AddDebugText("🟢 " .. title .. " - " .. message, pc:GetCurPawn(), 1.5, 
+                        {X=0, Y=0, Z=280}, {X=0, Y=0, Z=280}, 
+                        {R=0, G=255, B=0, A=255}, true, false, true, nil, 6.0, true)
                 end)
                 return true
             end
         end
         
-        -- Method 3: Print to console/log
-        print("[BYPASS] " .. title .. " - " .. message)
-        
-        -- Method 4: Try UI notification system (if available)
-        pcall(function()
-            local Notice = require("client.slua.logic.common.logic_notice")
-            if Notice and Notice.ShowNotice then
-                Notice.ShowNotice(message, 3)
-            end
-        end)
-        
+        -- Method 3: Console log (always works)
+        print("[BYPASS] 🟢 " .. title .. " - " .. message)
         return false
     end
     
-    -- Only show once per match
-    if not _G._BYPASS_MSG_SHOWN then
-        _G._BYPASS_MSG_SHOWN = true
-        ShowSuccessMessage("SERVER BASE", "✓ COMPLETE BYPASS ACTIVE\n✓ 100% Telemetry Killed\n✓ 8-LAYER ANTI-CHEAT BYPASSED\n✓ Play Safe | Enjoy")
+    -- Show only once per match, and only after everything is initialized
+    if not _G._WELCOME_MSG_SHOWN then
+        _G._WELCOME_MSG_SHOWN = true
+        -- Small delay to ensure UI/HUD is ready
+        Game:SetTimer(0.5, false, function()
+            ShowWelcomeMessage(
+                "🟢 WELCOME", 
+                "✅ COMPLETE BYPASS ACTIVE\n" ..
+                "✅ 100% Telemetry Killed\n" ..
+                "✅ 8-LAYER ANTI-CHEAT BYPASSED\n" ..
+                "✅ Play Safe | Enjoy"
+            )
+        end)
     end
 end)
 
@@ -2731,7 +2731,7 @@ local function ESPTick()
 
     if not crowded and HUD and currentPawn then
         HUD:AddDebugText(string.format("BOT : %d     PLAYER : %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=155}, {X=0,Y=0,Z=155}, {R=255,G=255,B=0,A=255}, true, false, true, nil, 1.0, true)
-        HUD:AddDebugText("REAL MODER @ADITYA_ORG SAFE PLAY", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
+        HUD:AddDebugText("ONLINE PAK V1", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
     end
 end
 
@@ -3631,3 +3631,6 @@ pcall(function()
         bypassInit()
     end
 end)
+
+-- Final call to EnableFullBypass already done via finalStart. But we also ensure it's called.
+-- The bypass is already active. The welcome popup is already placed and will show after 0.5 sec delay.
