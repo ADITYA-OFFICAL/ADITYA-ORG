@@ -3022,9 +3022,9 @@ local function ApplyHardAimbot()
         entity.SwitchFromBackpackToIdleTime = 0.15
         entity.ShotGunHorizontalSpread = 0.0
         entity.ShotGunVerticalSpread = 0.0
-        entity.RecoilKick = 0.3
-        entity.RecoilKickADS = 0.2
-        entity.AnimationKick = 0.2
+        entity.RecoilKick = 0.02
+        entity.RecoilKickADS = 0.02
+        entity.AnimationKick = 0.02
         entity.AccessoriesVRecoilFactor = 0.30
         entity.AccessoriesHRecoilFactor = 0.35
         entity.ExtraHitPerformScale = 10
