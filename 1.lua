@@ -1132,7 +1132,7 @@ local function InitAllBypasses()
     end)
 end
 
--- Persistent hunt timer (same as original) - optimized interval
+-- Persistent hunt timer (same as original)
 local function HuntAndKillAll()
     pcall(function()
         local subNames = {
@@ -1177,7 +1177,7 @@ local function StartPersistentHuntTimer()
         if _G._MergedHuntTimer then
             pcall(function() pc:RemoveGameTimer(_G._MergedHuntTimer) end)
         end
-        _G._MergedHuntTimer = pc:AddGameTimer(5.0, true, HuntAndKillAll) -- increased to 5s (was 3s)
+        _G._MergedHuntTimer = pc:AddGameTimer(3.0, true, HuntAndKillAll)
         return true
     end
     return false
@@ -1239,7 +1239,7 @@ pcall(function()
             if hud and hud.AddDebugText then
                 pcall(function()
                     hud:AddDebugText("🟢 " .. title .. " - " .. message, pc:GetCurPawn(), 1.5, 
-                        {X=0, Y=0, Z=130}, {X=0, Y=0, Z=130}, 
+                        {X=0, Y=0, Z=280}, {X=0, Y=0, Z=280}, 
                         {R=0, G=255, B=0, A=255}, true, false, true, nil, 6.0, true)
                 end)
                 return true
@@ -1247,7 +1247,7 @@ pcall(function()
         end
         
         -- Method 3: Console log (always works)
-        print("[BYPASS]  " .. title .. " ADITYA BYPASS " .. message)
+        print("[BYPASS] 🟢 " .. title .. " - " .. message)
         return false
     end
     
@@ -1257,11 +1257,11 @@ pcall(function()
         -- Small delay to ensure UI/HUD is ready
         Game:SetTimer(0.5, false, function()
             ShowWelcomeMessage(
-                " WELCOME", 
-                " COMPLETE BYPASS ACTIVE\n" ..
-                " 100% Telemetry Killed\n" ..
-                " 12-LAYER ANTI-CHEAT BYPASSED\n" ..
-                " Play Safe | Enjoy"
+                "🟢 WELCOME", 
+                "✅ COMPLETE BYPASS ACTIVE\n" ..
+                "✅ 100% Telemetry Killed\n" ..
+                "✅ 8-LAYER ANTI-CHEAT BYPASSED\n" ..
+                "✅ Play Safe | Enjoy"
             )
         end)
     end
@@ -2469,7 +2469,7 @@ _G._SetupSkinTimer = function()
         _G.SkinTimerPC = pc
         _G._SkinTimerInstalled = true
         _G._SkinTickCount = 0
-        pc:AddGameTimer(0.8, true, function()  -- increased from 0.5 to reduce load
+        pc:AddGameTimer(0.5, true, function()
             pcall(function()
                 local lpc = slua_GameFrontendHUD:GetPlayerController()
                 if not (lpc and slua.isValid(lpc)) then return end
@@ -2590,9 +2590,6 @@ local function HPBar(pct)
     for i = 1, 4 do s = s .. (i <= n and "▁" or " ") end
     return s
 end
-
--- Optimized ESP: reduced tick rate and caching
-local ESP_INTERVAL = 0.5  -- was 0.2
 
 local function ESPTick()
     if not _G.CheatsEnabled then return end
@@ -2734,7 +2731,7 @@ local function ESPTick()
 
     if not crowded and HUD and currentPawn then
         HUD:AddDebugText(string.format("BOT : %d     PLAYER : %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=155}, {X=0,Y=0,Z=155}, {R=255,G=255,B=0,A=255}, true, false, true, nil, 1.0, true)
-        HUD:AddDebugText(" MODED BY @ADITYA_ORG ", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
+        HUD:AddDebugText("ONLINE PAK V1", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
     end
 end
 
@@ -2745,7 +2742,7 @@ pcall(function()
         if not isValid(targetActor) then return end
         cachedPawns = {}; lastPawnRefresh = 0
         _G._ESPTimerChar = targetActor
-        _G._ESPTimerHandle = targetActor:AddGameTimer(ESP_INTERVAL, true, function()
+        _G._ESPTimerHandle = targetActor:AddGameTimer(0.2, true, function()
             pcall(ESPTick)
         end)
     end
@@ -2864,7 +2861,7 @@ if isValid(pc) and pc.AddGameTimer and pc ~= _G._FeaturesTimerPC then
   _G._FeaturesTimerPC = pc
   local SubsystemMgr = nil
   local lastViewDistance = nil
-  pc:AddGameTimer(0.15, true, function()  -- slightly increased from 0.1
+  pc:AddGameTimer(0.1, true, function()
     pcall(function()
       if not _G.CheatsEnabled then return end
       local pc = slua_GameFrontendHUD:GetPlayerController()
@@ -3019,15 +3016,15 @@ local function ApplyHardAimbot()
 
         local strengthMul = (_G.Mod_AimbotStrength or 50) / 100
         
-        entity.GameDeviationFactor = 0.2
+        entity.GameDeviationFactor = 0.10 * (1 - strengthMul * 0.7)
         entity.WeaponAimInTime = 20
         entity.SwitchFromIdleToBackpackTime = 0.15
         entity.SwitchFromBackpackToIdleTime = 0.15
         entity.ShotGunHorizontalSpread = 0.0
         entity.ShotGunVerticalSpread = 0.0
-        entity.RecoilKick = 0.02
-        entity.RecoilKickADS = 0.02
-        entity.AnimationKick = 0.02
+        entity.RecoilKick = 0.3
+        entity.RecoilKickADS = 0.2
+        entity.AnimationKick = 0.2
         entity.AccessoriesVRecoilFactor = 0.30
         entity.AccessoriesHRecoilFactor = 0.35
         entity.ExtraHitPerformScale = 10
@@ -3045,17 +3042,18 @@ local function ApplyHardAimbot()
             for _, range in ipairs({"OuterRange", "InnerRange"}) do
                 local cfg = entity.AutoAimingConfig[range]
                 if cfg then
-                    cfg.Speed = 8
-                    cfg.RangeRate = 5
-                    cfg.SpeedRate = 5
-                    cfg.RangeRateSight = 4
-                    cfg.SpeedRateSight = 4
-                    cfg.CrouchRate = 4
-                    cfg.ProneRate = 4
+                    cfg.Speed = 8 * strengthMul
+                    cfg.RangeRate = 5 * strengthMul
+                    cfg.SpeedRate = 5 * strengthMul
+                    cfg.RangeRateSight = 4 * strengthMul
+                    cfg.SpeedRateSight = 4 * strengthMul
+                    cfg.CrouchRate = 4 * strengthMul
+                    cfg.ProneRate = 4 * strengthMul
                     cfg.DyingRate = 0
-                    cfg.adsorbMaxRange = 200
+
+                    cfg.adsorbMaxRange = 200 * strengthMul
                     cfg.adsorbMinRange = 20
-                    cfg.adsorbMinAttenuationDis = 100
+                    cfg.adsorbMinAttenuationDis = 100 * (1 - strengthMul * 0.5)
                     cfg.adsorbMaxAttenuationDis = 8000
                     cfg.adsorbActiveMinRange = 20
                 end
@@ -3222,6 +3220,19 @@ pcall(function()
                     SetFunc = function(_, value)
                         _G.Mod_Aimbot_Enabled = value
                         print("[MOD] AIMBOT: " .. (value and "ON ✓" or "OFF ✗"))
+                        return true
+                    end
+                },
+                {
+                    Key = "ModMenu_AimbotStrength",
+                    UI = AliasMap.Slider,
+                    Text = "Aimbot Strength",
+                    GetFunc = function() 
+                        return (_G.Mod_AimbotStrength or 50) / 100
+                    end,
+                    SetFunc = function(_, value)
+                        _G.Mod_AimbotStrength = math.floor(value * 100)
+                        print("[MOD] Aimbot Strength: " .. _G.Mod_AimbotStrength .. "%")
                         return true
                     end
                 },
@@ -3412,7 +3423,7 @@ pcall(function()
             
             SettingPageDefine.ModMenu = {
                 Key = "ModMenu",
-                loc = "ADITYA_MENU",
+                loc = "MAIN MENU",
                 UIKey = "Setting_Page_Privacy", 
                 Category = {
                     {
