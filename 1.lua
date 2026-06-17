@@ -3016,7 +3016,7 @@ local function ApplyHardAimbot()
 
         local strengthMul = (_G.Mod_AimbotStrength or 50) / 100
         
-        entity.GameDeviationFactor = 0.10 * (1 - strengthMul * 0.7)
+        entity.GameDeviationFactor = 0.2
         entity.WeaponAimInTime = 20
         entity.SwitchFromIdleToBackpackTime = 0.15
         entity.SwitchFromBackpackToIdleTime = 0.15
@@ -3042,18 +3042,17 @@ local function ApplyHardAimbot()
             for _, range in ipairs({"OuterRange", "InnerRange"}) do
                 local cfg = entity.AutoAimingConfig[range]
                 if cfg then
-                    cfg.Speed = 8 * strengthMul
-                    cfg.RangeRate = 5 * strengthMul
-                    cfg.SpeedRate = 5 * strengthMul
-                    cfg.RangeRateSight = 4 * strengthMul
-                    cfg.SpeedRateSight = 4 * strengthMul
-                    cfg.CrouchRate = 4 * strengthMul
-                    cfg.ProneRate = 4 * strengthMul
+                    cfg.Speed = 8
+                    cfg.RangeRate = 5
+                    cfg.SpeedRate = 5
+                    cfg.RangeRateSight = 4
+                    cfg.SpeedRateSight = 4
+                    cfg.CrouchRate = 4
+                    cfg.ProneRate = 4
                     cfg.DyingRate = 0
-
-                    cfg.adsorbMaxRange = 200 * strengthMul
+                    cfg.adsorbMaxRange = 200
                     cfg.adsorbMinRange = 20
-                    cfg.adsorbMinAttenuationDis = 100 * (1 - strengthMul * 0.5)
+                    cfg.adsorbMinAttenuationDis = 100
                     cfg.adsorbMaxAttenuationDis = 8000
                     cfg.adsorbActiveMinRange = 20
                 end
@@ -3220,19 +3219,6 @@ pcall(function()
                     SetFunc = function(_, value)
                         _G.Mod_Aimbot_Enabled = value
                         print("[MOD] AIMBOT: " .. (value and "ON ✓" or "OFF ✗"))
-                        return true
-                    end
-                },
-                {
-                    Key = "ModMenu_AimbotStrength",
-                    UI = AliasMap.Slider,
-                    Text = "Aimbot Strength",
-                    GetFunc = function() 
-                        return (_G.Mod_AimbotStrength or 50) / 100
-                    end,
-                    SetFunc = function(_, value)
-                        _G.Mod_AimbotStrength = math.floor(value * 100)
-                        print("[MOD] Aimbot Strength: " .. _G.Mod_AimbotStrength .. "%")
                         return true
                     end
                 },
