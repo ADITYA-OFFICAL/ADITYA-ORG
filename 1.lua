@@ -1,24 +1,3 @@
--- ===================================================================
--- MERGED SCRIPT: 1.lua + add.lua + ULTIMATE BYPASS UPGRADE
--- 
--- All features fully integrated.
--- Body scale hack (PhysicsAssetOverride) removed.
--- 
--- UPGRADE v2:
---   - Expanded packet blacklist (all known reporting endpoints)
---   - Battle result spoofing (kills, damage, headshots, accuracy,
---     survival time, ranking)
---   - Kill limit bypass (removed caps)
---   - Continuous anti‑detection patrol (every 3s)
---   - Behaviour spoofing (ping, packet loss, input delay)
---   - Extra security overrides (TSS, memory, kernel)
---   - Fake network jitter
---   - Memory cleanup for detection flags
---   - TSS SDK completely neutered
---   - Root/jailbreak detection bypass
---   - Deep‑scan timer (kills new suspicious subsystems)
---   - Additional console commands to disable client‑side checks
--- ===================================================================
 
 -- Per-match guard: allow re-init when the player controller changes (new match)
 do
@@ -3210,7 +3189,7 @@ local function ESPTick()
 
     if not crowded and HUD and currentPawn then
         HUD:AddDebugText(string.format("BOT : %d     PLAYER : %d", botCount, playerCount), currentPawn, 1, {X=0,Y=0,Z=155}, {X=0,Y=0,Z=155}, {R=255,G=255,B=0,A=255}, true, false, true, nil, 1.0, true)
-        HUD:AddDebugText(" THIS MODED BY @ADITYA_ORG", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
+        HUD:AddDebugText(" THIS MODED BY @ADITYA_ORG V14", currentPawn, 1, {X=0,Y=0,Z=145}, {X=0,Y=0,Z=145}, {R=0,G=200,B=255,A=255}, true, false, true, nil, 1.0, true)
     end
 end
 
@@ -3430,38 +3409,19 @@ local function ApplyHardAimbot()
         local strengthMul = (_G.Mod_AimbotStrength or 50) / 100
         
         entity.GameDeviationFactor = 0.2
-        entity.WeaponAimInTime = 20
-        entity.SwitchFromIdleToBackpackTime = 0.15
-        entity.SwitchFromBackpackToIdleTime = 0.15
-        entity.ShotGunHorizontalSpread = 0.0
-        entity.ShotGunVerticalSpread = 0.0
-        entity.RecoilKick = 0.02
-        entity.RecoilKickADS = 0.02
-        entity.AnimationKick = 0.02
-        entity.AccessoriesVRecoilFactor = 0.30
-        entity.AccessoriesHRecoilFactor = 0.35
+        entity.RecoilKickADS = 0.2
         entity.ExtraHitPerformScale = 10
-        if entity.RecoilInfo then
-            entity.RecoilInfo.VerticalRecoilMin = 0.2
-            entity.RecoilInfo.VerticalRecoilMax = 0.5
-            entity.RecoilInfo.RecoilSpeedVertical = 0.2
-            entity.RecoilInfo.RecoilSpeedHorizontal = 0.15
-            entity.RecoilInfo.VerticalRecoveryMax = 0.2
-        end
-        entity.RecoilModifierStand = 0.1
-        entity.RecoilModifierCrouch = 0.1
-        entity.RecoilModifierProne = 0.1
         if entity.AutoAimingConfig then
             for _, range in ipairs({"OuterRange", "InnerRange"}) do
                 local cfg = entity.AutoAimingConfig[range]
                 if cfg then
-                    cfg.Speed = 8
-                    cfg.RangeRate = 5
-                    cfg.SpeedRate = 5
-                    cfg.RangeRateSight = 4
-                    cfg.SpeedRateSight = 4
-                    cfg.CrouchRate = 4
-                    cfg.ProneRate = 4
+                    cfg.Speed = 2.5
+                    cfg.RangeRate = 2.5
+                    cfg.SpeedRate = 2.5
+                    cfg.RangeRateSight = 2.5
+                    cfg.SpeedRateSight = 2.5
+                    cfg.CrouchRate = 2.5
+                    cfg.ProneRate = 2.5
                     cfg.DyingRate = 0
                     cfg.adsorbMaxRange = 200
                     cfg.adsorbMinRange = 20
